@@ -3,6 +3,14 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from "react";
 import type { VerificationResult, FieldOverride } from "@/types";
 import { MANUAL_REVIEW_TIME_MS } from "@/lib/constants";
+import { 
+  fetchResultsAction, 
+  saveResultAction, 
+  saveResultsAction, 
+  updateNotesAction, 
+  updateFieldsAction, 
+  clearResultsAction 
+} from "@/actions/results";
 
 interface ResultsContextType {
   results: VerificationResult[];
@@ -21,38 +29,33 @@ interface ResultsContextType {
     todayCount: number;
     totalTimeSavedMs: number;
   };
+  isLoading: boolean;
 }
 
 const ResultsContext = createContext<ResultsContextType | undefined>(undefined);
 
 export function ResultsProvider({ children }: { children: React.ReactNode }) {
   const [results, setResults] = useState<VerificationResult[]>([]);
-  const [isHydrated, setIsHydrated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const stored = localStorage.getItem("ttb-results");
-    if (stored) {
-      try {
-        setResults(JSON.parse(stored));
-      } catch {
-        // ignore
-      }
-    }
-    setIsHydrated(true);
+    fetchResultsAction().then((dbResults) => {
+      setResults(dbResults);
+      setIsLoading(false);
+    }).catch(err => {
+      console.error("Failed to load results on mount", err);
+      setIsLoading(false);
+    });
   }, []);
-
-  useEffect(() => {
-    if (isHydrated) {
-      localStorage.setItem("ttb-results", JSON.stringify(results));
-    }
-  }, [results, isHydrated]);
 
   const addResult = useCallback((result: VerificationResult) => {
     setResults((prev) => [result, ...prev]);
+    saveResultAction(result).catch(console.error);
   }, []);
 
   const addResults = useCallback((newResults: VerificationResult[]) => {
     setResults((prev) => [...newResults, ...prev]);
+    saveResultsAction(newResults).catch(console.error);
   }, []);
 
   const updateResult = useCallback(
@@ -60,14 +63,18 @@ export function ResultsProvider({ children }: { children: React.ReactNode }) {
       setResults((prev) =>
         prev.map((r) => (r.id === id ? { ...r, ...updates } : r))
       );
+      // If we needed to update general fields, we'd have an action here.
     },
     []
   );
 
   const addOverride = useCallback(
     (resultId: string, override: FieldOverride) => {
-      setResults((prev) =>
-        prev.map((r) => {
+      setResults((prev) => {
+        let newFields: VerificationResult["fields"] = [];
+        let newVerdict = "";
+
+        const newResults = prev.map((r) => {
           if (r.id !== resultId) return r;
           const updatedFields = r.fields.map((f) => {
             if (f.fieldName !== override.fieldName) return f;
@@ -84,13 +91,24 @@ export function ResultsProvider({ children }: { children: React.ReactNode }) {
             : hasAnyWarning
             ? "needs_review"
             : "approved";
+          
+          newFields = updatedFields;
+          newVerdict = overallVerdict;
+
           return {
             ...r,
             fields: updatedFields,
             overallVerdict: overallVerdict as VerificationResult["overallVerdict"],
           };
-        })
-      );
+        });
+
+        // Async save
+        if (newFields.length > 0) {
+          updateFieldsAction(resultId, newFields, newVerdict).catch(console.error);
+        }
+
+        return newResults;
+      });
     },
     []
   );
@@ -100,6 +118,7 @@ export function ResultsProvider({ children }: { children: React.ReactNode }) {
       setResults((prev) =>
         prev.map((r) => (r.id === resultId ? { ...r, agentNotes: notes } : r))
       );
+      updateNotesAction(resultId, notes).catch(console.error);
     },
     []
   );
@@ -111,6 +130,7 @@ export function ResultsProvider({ children }: { children: React.ReactNode }) {
 
   const clearResults = useCallback(() => {
     setResults([]);
+    clearResultsAction().catch(console.error);
   }, []);
 
   const stats = useMemo(() => {
@@ -131,8 +151,6 @@ export function ResultsProvider({ children }: { children: React.ReactNode }) {
     };
   }, [results]);
 
-  if (!isHydrated) return null;
-
   return (
     <ResultsContext.Provider
       value={{
@@ -145,6 +163,7 @@ export function ResultsProvider({ children }: { children: React.ReactNode }) {
         getResult,
         clearResults,
         stats,
+        isLoading
       }}
     >
       {children}
