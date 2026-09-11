@@ -29,6 +29,7 @@ import type {
 import { Play, RotateCcw } from "lucide-react";
 import { extractWithTesseract } from "@/lib/tesseract";
 import { buildVerificationResult } from "@/lib/verification";
+import { ensureCompanyAction } from "@/actions/companies";
 
 export default function VerifyPage() {
   return (
@@ -53,6 +54,7 @@ function VerifyContent() {
   const [beverageType, setBeverageType] = useState<BeverageType>(settings.defaultBeverageType);
   const [skipComparison, setSkipComparison] = useState(false);
   const [appData, setAppData] = useState<ApplicationData>({});
+  const [companyName, setCompanyName] = useState("");
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -78,6 +80,7 @@ function VerifyContent() {
     setResult(null);
     setBatchResults([]);
     setError(null);
+    setCompanyName("");
   };
 
   const processFile = async (file: File): Promise<VerificationResult> => {
@@ -98,6 +101,7 @@ function VerifyContent() {
                 openaiApiKey: getEffectiveApiKey(),
                 openaiModel: settings.openaiModel,
                 applicationData: skipComparison ? undefined : appData,
+                companyName: companyName.trim(),
                 fileName: file.name,
                 agentId: agent?.id,
                 agentName: agent?.name,
@@ -126,6 +130,7 @@ function VerifyContent() {
               beverageType,
               ocrEngine: "tesseract",
               applicationData: skipComparison ? undefined : appData,
+              companyName: companyName.trim(),
               agentId: agent?.id || "unknown",
               agentName: agent?.name || "Unknown Agent",
               processingTimeMs: Date.now() - startTime,
@@ -144,22 +149,31 @@ function VerifyContent() {
 
   const handleVerify = async () => {
     if (files.length === 0) return;
+    if (!companyName.trim()) {
+      setError("Please select or enter the submitting company before verifying.");
+      return;
+    }
     
     setIsProcessing(true);
     setError(null);
     setProgress(0);
 
     try {
+      // Persist company (creates if new) before saving verification results
+      const company = await ensureCompanyAction(companyName);
+      setCompanyName(company.name);
+
       if (mode === "single") {
         const res = await processFile(files[0]);
-        setResult(res);
-        addResult(res);
+        const withCompany = { ...res, companyName: company.name };
+        setResult(withCompany);
+        addResult(withCompany);
       } else {
         const results: VerificationResult[] = [];
         for (let i = 0; i < files.length; i++) {
           try {
             const res = await processFile(files[i]);
-            results.push(res);
+            results.push({ ...res, companyName: company.name });
           } catch (err) {
             console.error(`Failed to process ${files[i].name}`, err);
           }
@@ -288,67 +302,71 @@ function VerifyContent() {
         </div>
       )}
 
-      {/* Upload State */}
+      {/* Upload State — form fields only appear after a label is uploaded */}
       {!result && batchResults.length === 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-4">
-            {files.length === 0 ? (
-              <Dropzone onFilesSelected={handleFilesSelected} isBatchMode={mode === "batch"} />
-            ) : mode === "single" ? (
-              <div className="space-y-4">
-                {qualityReports[files[0].name] && (
-                  <ImageQualityCheck report={qualityReports[files[0].name]} />
-                )}
-                <FilePreview file={files[0]} onClear={clearFiles} disabled={isProcessing} />
-              </div>
-            ) : (
-              <BatchUploadList
-                files={files}
-                qualityReports={qualityReports}
-                onRemove={(i) => {
-                  const newFiles = [...files];
-                  newFiles.splice(i, 1);
-                  setFiles(newFiles);
-                }}
-                disabled={isProcessing}
-              />
-            )}
-          </div>
-
-          <div>
-            <Card className="p-5 bg-zinc-950 border-zinc-800">
-              <ApplicationForm 
-                defaultBeverageType={beverageType}
-                onChange={(data, type, skip) => {
-                  setAppData(data);
-                  setBeverageType(type);
-                  setSkipComparison(skip);
-                }}
-              />
-              
-              <div className="mt-6 pt-6 border-t border-zinc-800">
-                <Button
-                  onClick={handleVerify}
-                  disabled={files.length === 0 || isProcessing}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                  size="lg"
-                >
-                  {isProcessing ? (
-                    <span className="flex items-center gap-2">
-                      <LoadingSpinner size="sm" message="" />
-                      Processing... {mode === "batch" && `${progress}%`}
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <Play className="h-4 w-4" />
-                      {mode === "single" ? "Run Verification" : `Verify ${files.length} Labels`}
-                    </span>
+        files.length === 0 ? (
+          <Dropzone onFilesSelected={handleFilesSelected} isBatchMode={mode === "batch"} />
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-4">
+              {mode === "single" ? (
+                <div className="space-y-4">
+                  {qualityReports[files[0].name] && (
+                    <ImageQualityCheck report={qualityReports[files[0].name]} />
                   )}
-                </Button>
-              </div>
-            </Card>
+                  <FilePreview file={files[0]} onClear={clearFiles} disabled={isProcessing} />
+                </div>
+              ) : (
+                <BatchUploadList
+                  files={files}
+                  qualityReports={qualityReports}
+                  onRemove={(i) => {
+                    const newFiles = [...files];
+                    newFiles.splice(i, 1);
+                    setFiles(newFiles);
+                  }}
+                  disabled={isProcessing}
+                />
+              )}
+            </div>
+
+            <div>
+              <Card className="p-5 bg-zinc-950 border-zinc-800">
+                <ApplicationForm
+                  defaultBeverageType={beverageType}
+                  companyName={companyName}
+                  onCompanyChange={setCompanyName}
+                  onChange={(data, type, skip) => {
+                    setAppData(data);
+                    setBeverageType(type);
+                    setSkipComparison(skip);
+                  }}
+                />
+
+                <div className="mt-6 pt-6 border-t border-zinc-800">
+                  <Button
+                    onClick={handleVerify}
+                    disabled={files.length === 0 || isProcessing || !companyName.trim()}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    size="lg"
+                  >
+                    {isProcessing ? (
+                      <span className="flex items-center gap-2">
+                        <LoadingSpinner size="sm" message="" />
+                        Processing... {mode === "batch" && `${progress}%`}
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <Play className="h-4 w-4" />
+                        {mode === "single" ? "Run Verification" : `Verify ${files.length} Labels`}
+                      </span>
+                    )}
+                  </Button>
+                </div>
+              </Card>
+            </div>
           </div>
-        </div>
+        )
       )}
 
       {/* Results State */}

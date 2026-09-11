@@ -32,6 +32,7 @@ export function buildVerificationResult(
     beverageType: BeverageType;
     ocrEngine: OcrEngine;
     applicationData?: ApplicationData;
+    companyName?: string;
     agentId: string;
     agentName: string;
     processingTimeMs: number;
@@ -114,6 +115,7 @@ export function buildVerificationResult(
   return {
     id: uuidv4(),
     fileName: options.fileName,
+    companyName: options.companyName?.trim() || "Unknown",
     imageDataUrl: options.imageDataUrl,
     beverageType: options.beverageType,
     overallVerdict,

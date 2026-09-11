@@ -1,9 +1,16 @@
 import { pgTable, text, timestamp, integer, jsonb } from "drizzle-orm/pg-core";
 import type { LabelField } from "@/types";
 
+export const companies = pgTable("companies", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export const verificationResults = pgTable("verification_results", {
   id: text("id").primaryKey(),
   fileName: text("file_name").notNull(),
+  companyName: text("company_name").notNull(),
   imageDataUrl: text("image_data_url").notNull(),
   beverageType: text("beverage_type").notNull(),
   overallVerdict: text("overall_verdict").notNull(),

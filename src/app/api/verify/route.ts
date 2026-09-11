@@ -21,6 +21,7 @@ export async function POST(request: Request) {
       fileName = "label.jpg",
       agentId = "unknown",
       agentName = "Unknown Agent",
+      companyName,
     } = body;
 
     if (!imageBase64) {
@@ -63,6 +64,7 @@ export async function POST(request: Request) {
         beverageType,
         ocrEngine,
         applicationData,
+        companyName,
         agentId,
         agentName,
         processingTimeMs,

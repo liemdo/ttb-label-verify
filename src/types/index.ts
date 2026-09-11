@@ -92,6 +92,7 @@ export interface LabelField {
 export interface VerificationResult {
   id: string;
   fileName: string;
+  companyName: string;
   imageDataUrl: string;
   beverageType: BeverageType;
   overallVerdict: "approved" | "rejected" | "needs_review";
@@ -137,6 +138,7 @@ export interface VerifyRequest {
   openaiApiKey?: string;
   openaiModel?: string;
   applicationData?: ApplicationData;
+  companyName?: string;
 }
 
 export interface ApplicationData {
