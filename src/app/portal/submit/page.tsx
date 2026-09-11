@@ -10,27 +10,24 @@ import { Dropzone } from "@/components/upload/dropzone";
 import { FilePreview } from "@/components/upload/file-preview";
 import { ImageQualityCheck } from "@/components/upload/image-quality-check";
 import { ApplicationForm } from "@/components/upload/application-form";
-import { VerificationCard } from "@/components/results/verification-card";
+import { LabelReviewStep } from "@/components/upload/label-review-step";
 import { LoadingSpinner } from "@/components/shared/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ensureCompanyAction } from "@/actions/companies";
 import { saveResultAction } from "@/actions/results";
 import { extractWithTesseract } from "@/lib/tesseract";
-import { buildVerificationResult } from "@/lib/verification";
+import {
+  applyApplicantConfirmation,
+  buildVerificationResult,
+} from "@/lib/verification";
 import type {
   ApplicationData,
   BeverageType,
   ImageQualityReport,
   VerificationResult,
 } from "@/types";
-import {
-  AlertTriangle,
-  CheckCircle2,
-  ChevronLeft,
-  ScanSearch,
-  Send,
-} from "lucide-react";
+import { ChevronLeft, ScanSearch } from "lucide-react";
 
 export default function SubmitLabelPage() {
   return (
@@ -51,8 +48,9 @@ function SubmitLabelContent() {
   const [skipComparison, setSkipComparison] = useState(true);
   const [appData, setAppData] = useState<ApplicationData>({});
 
+  // Set once the AI has read the label, which moves the page to the review step
   const [review, setReview] = useState<VerificationResult | null>(null);
-  const [isReviewStale, setIsReviewStale] = useState(false);
+  const [confirmedValues, setConfirmedValues] = useState<Record<string, string>>({});
   const [isReviewing, setIsReviewing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +59,6 @@ function SubmitLabelContent() {
     setFiles([]);
     setQualityReports({});
     setReview(null);
-    setIsReviewStale(false);
     setError(null);
   };
 
@@ -123,8 +120,18 @@ function SubmitLabelContent() {
 
     try {
       const result = await runReview();
+
+      // Seed the editable form with what the AI read, falling back to anything
+      // the applicant typed in beforehand
+      const seeded: Record<string, string> = {};
+      for (const field of result.fields) {
+        seeded[field.fieldName] =
+          field.extractedValue?.trim() || field.expectedValue?.trim() || "";
+      }
+
       setReview(result);
-      setIsReviewStale(false);
+      setConfirmedValues(seeded);
+      window.scrollTo({ top: 0 });
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred");
     } finally {
@@ -139,23 +146,27 @@ function SubmitLabelContent() {
     setError(null);
 
     try {
+      const confirmed = applyApplicantConfirmation(review, confirmedValues, {
+        id: applicant.id,
+        name: applicant.contactName,
+      });
+
       await ensureCompanyAction(applicant.companyName);
-      await saveResultAction(review);
-      router.push(`/portal/${review.id}`);
+      await saveResultAction(confirmed);
+      router.push(`/portal/${confirmed.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred");
       setIsSubmitting(false);
     }
   };
 
-  // Anything the applicant stated that the label doesn't back up
-  const mismatchedFields = review
-    ? review.fields.filter((f) => f.status === "fail")
-    : [];
-  const missingFields = review
-    ? review.fields.filter((f) => f.status === "warning" && f.required)
-    : [];
-  const hasConcerns = mismatchedFields.length > 0 || missingFields.length > 0;
+  const resetField = (fieldName: string) => {
+    const field = review?.fields.find((f) => f.fieldName === fieldName);
+    setConfirmedValues((prev) => ({
+      ...prev,
+      [fieldName]: field?.extractedValue?.trim() ?? "",
+    }));
+  };
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
@@ -167,9 +178,13 @@ function SubmitLabelContent() {
           <ChevronLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-white">Submit a Label</h1>
+          <h1 className="text-2xl font-bold text-white">
+            {review ? "Review your label information" : "Submit a Label"}
+          </h1>
           <p className="text-zinc-400 mt-1">
-            Upload your label and run a review. You can submit it either way.
+            {review
+              ? "Step 2 of 2 — confirm what the AI read, then submit"
+              : "Step 1 of 2 — upload your label and run a review"}
           </p>
         </div>
       </div>
@@ -180,13 +195,26 @@ function SubmitLabelContent() {
         </div>
       )}
 
-      {files.length === 0 ? (
+      {review ? (
+        <LabelReviewStep
+          result={review}
+          values={confirmedValues}
+          onValueChange={(fieldName, value) =>
+            setConfirmedValues((prev) => ({ ...prev, [fieldName]: value }))
+          }
+          onResetField={resetField}
+          onBack={() => {
+            setReview(null);
+            window.scrollTo({ top: 0 });
+          }}
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+        />
+      ) : files.length === 0 ? (
         <Dropzone
           onFilesSelected={(newFiles, reports) => {
             setFiles(newFiles);
             setQualityReports(reports);
-            setReview(null);
-            setIsReviewStale(false);
             setError(null);
           }}
           isBatchMode={false}
@@ -197,11 +225,7 @@ function SubmitLabelContent() {
             {qualityReports[files[0].name] && (
               <ImageQualityCheck report={qualityReports[files[0].name]} />
             )}
-            <FilePreview
-              file={files[0]}
-              onClear={clearFiles}
-              disabled={isReviewing || isSubmitting}
-            />
+            <FilePreview file={files[0]} onClear={clearFiles} disabled={isReviewing} />
           </div>
 
           <div>
@@ -213,14 +237,13 @@ function SubmitLabelContent() {
                   setAppData(data);
                   setBeverageType(type);
                   setSkipComparison(skip);
-                  if (review) setIsReviewStale(true);
                 }}
               />
 
               <div className="mt-6 pt-6 border-t border-zinc-800">
                 <Button
                   onClick={handleReview}
-                  disabled={isReviewing || isSubmitting}
+                  disabled={isReviewing}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                   size="lg"
                 >
@@ -232,100 +255,21 @@ function SubmitLabelContent() {
                   ) : (
                     <span className="flex items-center gap-2">
                       <ScanSearch className="h-4 w-4" />
-                      {review ? "Review again" : "Review"}
+                      Review
                     </span>
                   )}
                 </Button>
                 <p className="text-[11px] text-zinc-500 mt-2 text-center">
-                  The AI reads your label so you can check it before submitting.
+                  The AI reads your label and fills in the application for you.
+                  You can correct anything before submitting.
                 </p>
               </div>
             </Card>
           </div>
         </div>
       )}
-
-      {review && (
-        <div className="space-y-4">
-          <Card
-            className={`p-5 ${
-              hasConcerns
-                ? "bg-amber-500/5 border-amber-500/25"
-                : "bg-emerald-500/5 border-emerald-500/25"
-            }`}
-          >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div className="flex items-start gap-3 min-w-0">
-                {hasConcerns ? (
-                  <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
-                ) : (
-                  <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
-                )}
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-zinc-100">
-                    {hasConcerns
-                      ? "The label doesn't match everything you entered"
-                      : "Everything on the label checks out"}
-                  </p>
-                  <p className="text-sm text-zinc-400 mt-1">
-                    {mismatchedFields.length > 0 && (
-                      <>
-                        {formatFieldList(mismatchedFields.map((f) => f.displayName))}{" "}
-                        {mismatchedFields.length === 1 ? "does" : "do"} not match
-                        the label.{" "}
-                      </>
-                    )}
-                    {missingFields.length > 0 && (
-                      <>
-                        {formatFieldList(missingFields.map((f) => f.displayName))}{" "}
-                        {missingFields.length === 1 ? "was" : "were"} not found on
-                        the label.{" "}
-                      </>
-                    )}
-                    {hasConcerns
-                      ? "You can fix the label and review again, or submit as is and let a specialist decide."
-                      : "You're ready to submit this label for review."}
-                  </p>
-                  {isReviewStale && (
-                    <p className="text-xs text-amber-300 mt-2">
-                      You changed something since this review. Run Review again to
-                      see up-to-date results.
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <Button
-                onClick={handleSubmit}
-                disabled={isSubmitting || isReviewing || isReviewStale}
-                size="lg"
-                className={`shrink-0 gap-2 text-white ${
-                  hasConcerns
-                    ? "bg-amber-600 hover:bg-amber-700"
-                    : "bg-emerald-600 hover:bg-emerald-700"
-                }`}
-              >
-                <Send className="h-4 w-4" />
-                {isSubmitting
-                  ? "Submitting..."
-                  : hasConcerns
-                    ? "Submit anyway"
-                    : "Submit application"}
-              </Button>
-            </div>
-          </Card>
-
-          <VerificationCard result={review} />
-        </div>
-      )}
     </div>
   );
-}
-
-function formatFieldList(names: string[]): string {
-  if (names.length === 1) return names[0];
-  if (names.length === 2) return `${names[0]} and ${names[1]}`;
-  return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
 }
 
 function readFileAsDataUrl(file: File): Promise<string> {

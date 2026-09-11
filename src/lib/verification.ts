@@ -55,7 +55,9 @@ export function buildVerificationResult(
     const appData = options.applicationData;
     const displayName = FIELD_DISPLAY_NAMES[req.field] || req.displayName;
 
-    const isRequired = req.required && (!req.onlyIf || req.onlyIf === "imported");
+    // Conditional fields such as country of origin only bind for imports, so a
+    // blank one is not a gap in the application
+    const isRequired = req.required && !req.onlyIf;
 
     // Field names line up with the guideline definitions, so a stated value is
     // simply looked up by field name.
@@ -95,13 +97,7 @@ export function buildVerificationResult(
     };
   });
 
-  const hasAnyFail = labelFields.some((f) => f.status === "fail" && f.required);
-  const hasAnyWarning = labelFields.some((f) => f.status === "warning" && f.required);
-  const overallVerdict = hasAnyFail
-    ? "rejected"
-    : hasAnyWarning
-    ? "needs_review"
-    : "approved";
+  const overallVerdict = verdictFor(labelFields);
 
   // Calculate estimated time saved
   const timeSavedMs = MANUAL_REVIEW_TIME_MS - options.processingTimeMs;
@@ -126,6 +122,78 @@ export function buildVerificationResult(
     reviewStatus:
       options.submissionSource === "applicant" ? "awaiting_review" : "reviewed",
   };
+}
+
+/** Fields the applicant confirms by hand; the warning statement is fixed text. */
+export const APPLICANT_CONFIRMABLE = (field: LabelField) =>
+  field.fieldName !== "governmentWarning";
+
+/**
+ * Fold the applicant's confirmed values into an AI result. The AI reading stays
+ * in `extractedValue` as the audit trail while the confirmed value becomes the
+ * declared `expectedValue`, so a specialist can compare the artwork against
+ * what the company actually claims.
+ */
+export function applyApplicantConfirmation(
+  result: VerificationResult,
+  values: Record<string, string>,
+  confirmedBy: { id: string; name: string }
+): VerificationResult {
+  const timestamp = new Date().toISOString();
+
+  const fields: LabelField[] = result.fields.map((field) => {
+    if (!APPLICANT_CONFIRMABLE(field)) return field;
+
+    const stated = (values[field.fieldName] ?? "").trim();
+    const readByAi = (field.extractedValue ?? "").trim();
+
+    if (!stated) {
+      return {
+        ...field,
+        expectedValue: undefined,
+        status: field.required ? "warning" : "not_checked",
+        notes: field.required
+          ? "Left blank by the applicant. Confirm against the artwork."
+          : "Not provided",
+      };
+    }
+
+    if (stated === readByAi) {
+      return {
+        ...field,
+        expectedValue: stated,
+        status: "pass",
+        notes: "Applicant confirmed the value read from the label.",
+      };
+    }
+
+    return {
+      ...field,
+      expectedValue: stated,
+      status: "pass",
+      notes: "Applicant corrected the value read from the label.",
+      override: {
+        fieldName: field.fieldName,
+        originalStatus: field.status,
+        overriddenStatus: "pass",
+        reason: readByAi
+          ? `Corrected from "${readByAi}" as read by the AI`
+          : "Filled in by the applicant; the AI found nothing on the label",
+        agentId: confirmedBy.id,
+        agentName: confirmedBy.name,
+        timestamp,
+      },
+    };
+  });
+
+  return { ...result, fields, overallVerdict: verdictFor(fields) };
+}
+
+/** A required failure rejects; a required gap needs a human. */
+export function verdictFor(fields: LabelField[]): VerificationResult["overallVerdict"] {
+  if (fields.some((f) => f.status === "fail" && f.required)) return "rejected";
+  if (fields.some((f) => f.status === "warning" && f.required)) return "needs_review";
+  return "approved";
 }
 
 function getValidationResult(
