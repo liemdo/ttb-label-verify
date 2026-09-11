@@ -4,7 +4,6 @@ import { useAuth } from "@/context/auth-context";
 import { useResults } from "@/context/results-context";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { VerdictBadge } from "@/components/shared/status-badge";
 import { TotalTimeSaved } from "@/components/results/time-saved";
 import Link from "next/link";
@@ -78,12 +77,19 @@ function DashboardContent() {
         />
       </div>
 
-      {/* Time saved */}
-      {stats.totalTimeSavedMs > 0 && (
-        <Card className="bg-emerald-500/5 border-emerald-500/20 p-4">
-          <div className="flex items-center gap-3">
-            <Zap className="h-5 w-5 text-emerald-400" />
-            <TotalTimeSaved totalMs={stats.totalTimeSavedMs} />
+      {/* Time saved — cumulative impact for stakeholders */}
+      {stats.total > 0 && (
+        <Card className="bg-emerald-500/5 border-emerald-500/20 p-5">
+          <div className="flex items-start gap-4">
+            <div className="h-10 w-10 rounded-lg bg-emerald-500/15 flex items-center justify-center shrink-0">
+              <Zap className="h-5 w-5 text-emerald-400" />
+            </div>
+            <TotalTimeSaved
+              totalMs={stats.totalTimeSavedMs}
+              labelCount={stats.total}
+              todayMs={stats.todayTimeSavedMs}
+              variant="banner"
+            />
           </div>
         </Card>
       )}
@@ -145,34 +151,37 @@ function DashboardContent() {
           </h2>
           <div className="space-y-2">
             {recentResults.map((r) => (
-              <Card
+              <Link
                 key={r.id}
-                className="p-4 bg-zinc-900/30 border-zinc-800 hover:bg-zinc-800/30 transition-colors"
+                href={`/applications/${r.id}`}
+                className="block"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded bg-zinc-800 border border-zinc-700 overflow-hidden shrink-0">
-                      {r.imageDataUrl && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={r.imageDataUrl}
-                          alt={r.fileName}
-                          className="h-full w-full object-cover"
-                        />
-                      )}
+                <Card className="p-4 bg-zinc-900/30 border-zinc-800 hover:bg-zinc-800/30 hover:border-zinc-700 transition-colors cursor-pointer">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded bg-zinc-800 border border-zinc-700 overflow-hidden shrink-0">
+                        {r.imageDataUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={r.imageDataUrl}
+                            alt={r.fileName}
+                            className="h-full w-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm text-zinc-200">{r.fileName}</p>
+                        <p className="text-xs text-zinc-500">
+                          {new Date(r.timestamp).toLocaleString()} •{" "}
+                          {r.ocrEngine === "openai" ? "AI" : "Tesseract"} •{" "}
+                          {(r.processingTimeMs / 1000).toFixed(1)}s
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-zinc-200">{r.fileName}</p>
-                      <p className="text-xs text-zinc-500">
-                        {new Date(r.timestamp).toLocaleString()} •{" "}
-                        {r.ocrEngine === "openai" ? "AI" : "Tesseract"} •{" "}
-                        {(r.processingTimeMs / 1000).toFixed(1)}s
-                      </p>
-                    </div>
+                    <VerdictBadge verdict={r.overallVerdict} />
                   </div>
-                  <VerdictBadge verdict={r.overallVerdict} />
-                </div>
-              </Card>
+                </Card>
+              </Link>
             ))}
           </div>
         </div>
