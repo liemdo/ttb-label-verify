@@ -5,10 +5,12 @@ import type { VerificationResult } from "@/types";
 import { VerdictBadge } from "@/components/shared/status-badge";
 import { TimeSaved } from "@/components/results/time-saved";
 import { Card } from "@/components/ui/card";
-import { ScanSearch } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { PenLine, ScanSearch } from "lucide-react";
 import { FieldCheckRow } from "@/components/results/field-check-row";
 import { WarningDiffView } from "@/components/results/warning-diff-view";
 import { AgentNotes } from "@/components/results/agent-notes";
+import { LabelImageViewer } from "@/components/results/label-image-viewer";
 
 interface VerificationCardProps {
   result: VerificationResult;
@@ -40,9 +42,16 @@ export function VerificationCard({
         <div>
           <div className="flex items-center gap-3 mb-1">
             <ScanSearch className="h-5 w-5 text-zinc-400" />
-            <h2 className="text-lg font-semibold text-zinc-100 truncate">
-              {result.fileName}
-            </h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-zinc-100 truncate max-w-[200px] sm:max-w-[300px]">
+                {result.fileName}
+              </h2>
+              {result.companyName && (
+                <span className="hidden sm:inline-flex px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 text-xs border border-indigo-500/20 whitespace-nowrap">
+                  {result.companyName}
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-zinc-500">
             <span className="capitalize">{result.beverageType}</span>
@@ -64,23 +73,15 @@ export function VerificationCard({
       </div>
 
       <div className="flex flex-col lg:flex-row">
-        {/* Left column: Image */}
+        {/* Left column: Image — wider so agents can inspect label details */}
         {!hideImage && result.imageDataUrl && (
-          <div className="w-full lg:w-2/5 border-r border-zinc-800 bg-zinc-900/20 p-5 flex flex-col">
-            <h3 className="text-sm font-medium text-zinc-400 mb-3">Label Image</h3>
-            <div className="flex-1 relative rounded-lg overflow-hidden border border-zinc-800 bg-zinc-950 min-h-[300px]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={result.imageDataUrl}
-                alt="Analyzed label"
-                className="absolute inset-0 w-full h-full object-contain p-2"
-              />
-            </div>
+          <div className="w-full lg:w-3/5 border-r border-zinc-800 bg-zinc-900/20 p-5 flex flex-col">
+            <LabelImageViewer src={result.imageDataUrl} />
           </div>
         )}
 
         {/* Right column: Fields */}
-        <div className={`w-full ${hideImage ? "" : "lg:w-3/5"} p-5 space-y-6`}>
+        <div className={`w-full ${hideImage ? "" : "lg:w-2/5"} p-5 space-y-6`}>
           <div>
             <h3 className="text-sm font-medium text-zinc-400 mb-3">Verification Details</h3>
             <div className="space-y-2">
@@ -100,18 +101,25 @@ export function VerificationCard({
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-medium text-zinc-400">Government Warning Check</h3>
                 {onOverrideField && (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => onOverrideField("governmentWarning")}
-                    className="text-xs text-indigo-400 hover:text-indigo-300"
+                    className="h-7 gap-1.5 px-2 text-zinc-500 hover:text-zinc-300"
+                    title="Override result"
                   >
-                    Override Result
-                  </button>
+                    <PenLine className="h-3.5 w-3.5" />
+                    <span className="text-xs">Override</span>
+                  </Button>
                 )}
               </div>
               <WarningDiffView extractedWarning={govWarningField.extractedValue} />
               {govWarningField.override && (
                 <p className="text-xs text-indigo-400 mt-2">
-                  Overridden by {govWarningField.override.agentName}: &quot;{govWarningField.override.reason}&quot;
+                  Overridden by {govWarningField.override.agentName}
+                  {govWarningField.override.reason
+                    ? `: "${govWarningField.override.reason}"`
+                    : ""}
                 </p>
               )}
             </div>

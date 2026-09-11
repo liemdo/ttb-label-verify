@@ -43,7 +43,7 @@ export function OverrideDialog({
   const [reason, setReason] = useState("");
 
   const handleSubmit = () => {
-    if (!agent || reason.trim().length < 10) return;
+    if (!agent) return;
 
     onSubmit({
       fieldName,
@@ -95,19 +95,14 @@ export function OverrideDialog({
 
           <div>
             <Label className="text-zinc-400 text-xs">
-              Reason for Override (min. 10 characters)
+              Reason for Override <span className="text-zinc-600">(optional)</span>
             </Label>
             <Textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Explain why you're overriding the AI result..."
+              placeholder="Optionally explain why you're overriding the AI result..."
               className="mt-1 bg-zinc-800 border-zinc-700 text-zinc-200 placeholder:text-zinc-600 min-h-[80px]"
             />
-            {reason.length > 0 && reason.length < 10 && (
-              <p className="text-xs text-red-400 mt-1">
-                {10 - reason.length} more characters required
-              </p>
-            )}
           </div>
 
           {agent && (
@@ -127,7 +122,7 @@ export function OverrideDialog({
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={reason.trim().length < 10}
+            disabled={!agent}
             className="bg-indigo-600 hover:bg-indigo-700 text-white"
           >
             Apply Override
