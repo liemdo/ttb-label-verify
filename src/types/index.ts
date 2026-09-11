@@ -164,6 +164,11 @@ export interface VerifyRequest {
   submittedByName?: string;
 }
 
+/**
+ * Values the applicant states for their product. Keys match the field names in
+ * the TTB guidelines, which vary by beverage type, so the index signature lets
+ * type-specific fields such as `sulfiteDeclaration` come along.
+ */
 export interface ApplicationData {
   brandName?: string;
   classType?: string;
@@ -171,6 +176,8 @@ export interface ApplicationData {
   netContents?: string;
   producerAddress?: string;
   countryOfOrigin?: string;
+  sulfiteDeclaration?: string;
+  [fieldName: string]: string | undefined;
 }
 
 export interface ExtractedField {

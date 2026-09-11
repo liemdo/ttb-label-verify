@@ -52,7 +52,8 @@ function VerifyContent() {
   const [qualityReports, setQualityReports] = useState<Record<string, ImageQualityReport>>({});
   
   const [beverageType, setBeverageType] = useState<BeverageType>(settings.defaultBeverageType);
-  const [skipComparison, setSkipComparison] = useState(false);
+  // No stated values until the specialist opts into manual entry
+  const [skipComparison, setSkipComparison] = useState(true);
   const [appData, setAppData] = useState<ApplicationData>({});
   const [companyName, setCompanyName] = useState("");
 

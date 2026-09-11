@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -11,14 +12,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { ApplicationData, BeverageType } from "@/types";
-import { Switch } from "@/components/ui/switch";
+import { fetchCompaniesAction, type Company } from "@/actions/companies";
+import { getGuidelineForBeverage } from "@/lib/ttb-guidelines";
 import {
-  fetchCompaniesAction,
-  type Company,
-} from "@/actions/companies";
-import { Building2, Plus } from "lucide-react";
+  BEVERAGE_TYPE_LABELS,
+  FIELD_DISPLAY_NAMES,
+  FIELD_PLACEHOLDERS,
+} from "@/lib/constants";
+import { Building2, Pencil, Plus, X } from "lucide-react";
 
 const NEW_COMPANY_VALUE = "__new__";
+
+/** The warning statement is fixed text, so there is nothing to state up front. */
+const NON_ENTERABLE_FIELDS = new Set(["governmentWarning"]);
+
+function fieldsForBeverage(beverageType: BeverageType) {
+  return getGuidelineForBeverage(beverageType).requiredFields.filter(
+    (f) => !NON_ENTERABLE_FIELDS.has(f.field)
+  );
+}
 
 interface ApplicationFormProps {
   defaultBeverageType: BeverageType;
@@ -39,7 +51,7 @@ export function ApplicationForm({
   onCompanyChange,
 }: ApplicationFormProps) {
   const [beverageType, setBeverageType] = useState<BeverageType>(defaultBeverageType);
-  const [skipComparison, setSkipComparison] = useState(false);
+  const [isManualEntry, setIsManualEntry] = useState(false);
   const [data, setData] = useState<ApplicationData>({});
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isNewCompany, setIsNewCompany] = useState(false);
@@ -52,20 +64,37 @@ export function ApplicationForm({
     fetchCompaniesAction().then(setCompanies).catch(console.error);
   }, [companyLocked]);
 
-  const handleDataChange = (field: keyof ApplicationData, value: string) => {
+  const fields = useMemo(() => fieldsForBeverage(beverageType), [beverageType]);
+  const placeholders = FIELD_PLACEHOLDERS[beverageType] ?? {};
+
+  const handleDataChange = (field: string, value: string) => {
     const newData = { ...data, [field]: value };
     setData(newData);
-    onChange(newData, beverageType, skipComparison);
+    onChange(newData, beverageType, false);
   };
 
-  const handleTypeChange = (val: BeverageType) => {
-    setBeverageType(val);
-    onChange(data, val, skipComparison);
+  const handleTypeChange = (value: BeverageType) => {
+    // Drop values for fields the new beverage type doesn't have
+    const allowed = new Set(fieldsForBeverage(value).map((f) => f.field));
+    const pruned: ApplicationData = {};
+    for (const [key, val] of Object.entries(data)) {
+      if (allowed.has(key) && val) pruned[key] = val;
+    }
+
+    setBeverageType(value);
+    setData(pruned);
+    onChange(pruned, value, false);
   };
 
-  const handleSkipChange = (val: boolean) => {
-    setSkipComparison(val);
-    onChange(data, beverageType, val);
+  const enableManualEntry = () => {
+    setIsManualEntry(true);
+    onChange(data, beverageType, false);
+  };
+
+  const disableManualEntry = () => {
+    setIsManualEntry(false);
+    setData({});
+    onChange({}, beverageType, true);
   };
 
   const handleCompanySelect = (value: string) => {
@@ -154,79 +183,95 @@ export function ApplicationForm({
         )}
       </div>
 
-      <div className="flex items-center justify-between p-4 rounded-lg bg-zinc-900 border border-zinc-800">
-        <div>
-          <h3 className="text-sm font-medium text-zinc-200">Comparison Mode</h3>
-          <p className="text-xs text-zinc-500 mt-0.5">
-            Extract data only, without comparing to application fields
+      {/* Product details are optional: the AI reads whatever is on the label,
+          and stated values simply give it something to check against. */}
+      {!isManualEntry ? (
+        <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/40 p-4 text-center">
+          <p className="text-sm text-zinc-300">Product information</p>
+          <p className="text-xs text-zinc-500 mt-1">
+            The AI reads these details straight from your label. Enter them
+            yourself to have the label checked against what you expect.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={enableManualEntry}
+            className="mt-4 border-zinc-700 text-zinc-200 hover:bg-zinc-800 gap-2"
+          >
+            <Pencil className="h-4 w-4" />
+            Enter information manually
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-sm font-medium text-zinc-200">
+              Product information
+            </h3>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={disableManualEntry}
+              className="h-7 gap-1.5 px-2 text-zinc-500 hover:text-zinc-300"
+            >
+              <X className="h-3.5 w-3.5" />
+              <span className="text-xs">Clear</span>
+            </Button>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs text-zinc-400">Beverage Type</Label>
+            <Select
+              value={beverageType}
+              onValueChange={(v) => {
+                if (v != null) handleTypeChange(String(v) as BeverageType);
+              }}
+            >
+              <SelectTrigger className="bg-zinc-900 border-zinc-800 w-full">
+                <SelectValue>{BEVERAGE_TYPE_LABELS[beverageType]}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(BEVERAGE_TYPE_LABELS).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-[11px] text-zinc-500">
+              {getGuidelineForBeverage(beverageType).regulation} — the fields
+              below follow this beverage type&apos;s requirements.
+            </p>
+          </div>
+
+          <div className="space-y-4 pt-2 border-t border-zinc-800/50">
+            {fields.map((field) => (
+              <div key={field.field} className="space-y-1.5">
+                <Label className="text-xs text-zinc-400 flex items-center gap-2">
+                  {FIELD_DISPLAY_NAMES[field.field] || field.displayName}
+                  {field.onlyIf === "imported" && (
+                    <span className="text-[10px] text-zinc-600 uppercase tracking-wide">
+                      imports only
+                    </span>
+                  )}
+                </Label>
+                <Input
+                  placeholder={placeholders[field.field] ?? ""}
+                  value={data[field.field] || ""}
+                  onChange={(e) => handleDataChange(field.field, e.target.value)}
+                  className="bg-zinc-900 border-zinc-800"
+                />
+              </div>
+            ))}
+          </div>
+
+          <p className="text-[11px] text-zinc-500">
+            Leave anything you are unsure about blank — blank fields are read
+            from the label instead of being compared.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Label className="text-xs text-zinc-400">Extract Only</Label>
-          <Switch checked={skipComparison} onCheckedChange={handleSkipChange} />
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <Label className="text-xs text-zinc-400">Beverage Type</Label>
-          <Select value={beverageType} onValueChange={(v) => handleTypeChange(v as BeverageType)}>
-            <SelectTrigger className="mt-1.5 bg-zinc-900 border-zinc-800">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="spirits">Distilled Spirits</SelectItem>
-              <SelectItem value="wine">Wine</SelectItem>
-              <SelectItem value="beer">Malt Beverage (Beer)</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {!skipComparison && (
-          <div className="space-y-4 pt-2 border-t border-zinc-800/50">
-            <h3 className="text-sm font-medium text-zinc-300">Expected Application Data</h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs text-zinc-400">Brand Name</Label>
-                <Input
-                  placeholder="e.g. OLD TOM DISTILLERY"
-                  value={data.brandName || ""}
-                  onChange={(e) => handleDataChange("brandName", e.target.value)}
-                  className="bg-zinc-900 border-zinc-800"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-zinc-400">Class/Type</Label>
-                <Input
-                  placeholder="e.g. Kentucky Straight Bourbon Whiskey"
-                  value={data.classType || ""}
-                  onChange={(e) => handleDataChange("classType", e.target.value)}
-                  className="bg-zinc-900 border-zinc-800"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-zinc-400">Alcohol Content</Label>
-                <Input
-                  placeholder="e.g. 45% Alc./Vol. (90 Proof)"
-                  value={data.alcoholContent || ""}
-                  onChange={(e) => handleDataChange("alcoholContent", e.target.value)}
-                  className="bg-zinc-900 border-zinc-800"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs text-zinc-400">Net Contents</Label>
-                <Input
-                  placeholder="e.g. 750 mL"
-                  value={data.netContents || ""}
-                  onChange={(e) => handleDataChange("netContents", e.target.value)}
-                  className="bg-zinc-900 border-zinc-800"
-                />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }

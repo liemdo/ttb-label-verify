@@ -10,6 +10,7 @@ import { Dropzone } from "@/components/upload/dropzone";
 import { FilePreview } from "@/components/upload/file-preview";
 import { ImageQualityCheck } from "@/components/upload/image-quality-check";
 import { ApplicationForm } from "@/components/upload/application-form";
+import { VerificationCard } from "@/components/results/verification-card";
 import { LoadingSpinner } from "@/components/shared/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -23,7 +24,13 @@ import type {
   ImageQualityReport,
   VerificationResult,
 } from "@/types";
-import { ChevronLeft, Send } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ChevronLeft,
+  ScanSearch,
+  Send,
+} from "lucide-react";
 
 export default function SubmitLabelPage() {
   return (
@@ -41,19 +48,27 @@ function SubmitLabelContent() {
   const [files, setFiles] = useState<File[]>([]);
   const [qualityReports, setQualityReports] = useState<Record<string, ImageQualityReport>>({});
   const [beverageType, setBeverageType] = useState<BeverageType>(settings.defaultBeverageType);
-  const [skipComparison, setSkipComparison] = useState(false);
+  const [skipComparison, setSkipComparison] = useState(true);
   const [appData, setAppData] = useState<ApplicationData>({});
+
+  const [review, setReview] = useState<VerificationResult | null>(null);
+  const [isReviewStale, setIsReviewStale] = useState(false);
+  const [isReviewing, setIsReviewing] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const clearFiles = () => {
     setFiles([]);
     setQualityReports({});
+    setReview(null);
+    setIsReviewStale(false);
     setError(null);
   };
 
-  const runVerification = async (file: File): Promise<VerificationResult> => {
+  const runReview = async (): Promise<VerificationResult> => {
+    const file = files[0];
     const base64 = await readFileAsDataUrl(file);
+    const applicationData = skipComparison ? undefined : appData;
 
     if (settings.ocrEngine === "openai") {
       const res = await fetch("/api/verify", {
@@ -65,7 +80,7 @@ function SubmitLabelContent() {
           ocrEngine: "openai",
           openaiApiKey: getEffectiveApiKey(),
           openaiModel: settings.openaiModel,
-          applicationData: skipComparison ? undefined : appData,
+          applicationData,
           companyName: applicant!.companyName,
           fileName: file.name,
           agentId: "unassigned",
@@ -77,7 +92,7 @@ function SubmitLabelContent() {
 
       const data = await res.json();
       if (!data.success) {
-        throw new Error(data.error || "Verification failed");
+        throw new Error(data.error || "We could not read this label");
       }
       return data.result;
     }
@@ -90,7 +105,7 @@ function SubmitLabelContent() {
       imageDataUrl: base64,
       beverageType,
       ocrEngine: "tesseract",
-      applicationData: skipComparison ? undefined : appData,
+      applicationData,
       companyName: applicant!.companyName,
       agentId: "unassigned",
       agentName: "Unassigned",
@@ -100,24 +115,47 @@ function SubmitLabelContent() {
     });
   };
 
-  const handleSubmit = async () => {
+  const handleReview = async () => {
     if (files.length === 0 || !applicant) return;
+
+    setIsReviewing(true);
+    setError(null);
+
+    try {
+      const result = await runReview();
+      setReview(result);
+      setIsReviewStale(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
+    } finally {
+      setIsReviewing(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!review || !applicant) return;
 
     setIsSubmitting(true);
     setError(null);
 
     try {
       await ensureCompanyAction(applicant.companyName);
-      const result = await runVerification(files[0]);
-      await saveResultAction(result);
-      router.push(`/portal/${result.id}`);
+      await saveResultAction(review);
+      router.push(`/portal/${review.id}`);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "An unexpected error occurred";
-      setError(message);
+      setError(err instanceof Error ? err.message : "An unexpected error occurred");
       setIsSubmitting(false);
     }
   };
+
+  // Anything the applicant stated that the label doesn't back up
+  const mismatchedFields = review
+    ? review.fields.filter((f) => f.status === "fail")
+    : [];
+  const missingFields = review
+    ? review.fields.filter((f) => f.status === "warning" && f.required)
+    : [];
+  const hasConcerns = mismatchedFields.length > 0 || missingFields.length > 0;
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
@@ -131,8 +169,7 @@ function SubmitLabelContent() {
         <div>
           <h1 className="text-2xl font-bold text-white">Submit a Label</h1>
           <p className="text-zinc-400 mt-1">
-            Your label is checked against TTB requirements immediately, then
-            reviewed by a compliance specialist.
+            Upload your label and run a review. You can submit it either way.
           </p>
         </div>
       </div>
@@ -148,6 +185,8 @@ function SubmitLabelContent() {
           onFilesSelected={(newFiles, reports) => {
             setFiles(newFiles);
             setQualityReports(reports);
+            setReview(null);
+            setIsReviewStale(false);
             setError(null);
           }}
           isBatchMode={false}
@@ -161,7 +200,7 @@ function SubmitLabelContent() {
             <FilePreview
               file={files[0]}
               onClear={clearFiles}
-              disabled={isSubmitting}
+              disabled={isReviewing || isSubmitting}
             />
           </div>
 
@@ -174,35 +213,119 @@ function SubmitLabelContent() {
                   setAppData(data);
                   setBeverageType(type);
                   setSkipComparison(skip);
+                  if (review) setIsReviewStale(true);
                 }}
               />
 
               <div className="mt-6 pt-6 border-t border-zinc-800">
                 <Button
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
+                  onClick={handleReview}
+                  disabled={isReviewing || isSubmitting}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                   size="lg"
                 >
-                  {isSubmitting ? (
+                  {isReviewing ? (
                     <span className="flex items-center gap-2">
                       <LoadingSpinner size="sm" message="" />
-                      Submitting...
+                      Reading label...
                     </span>
                   ) : (
                     <span className="flex items-center gap-2">
-                      <Send className="h-4 w-4" />
-                      Submit for Review
+                      <ScanSearch className="h-4 w-4" />
+                      {review ? "Review again" : "Review"}
                     </span>
                   )}
                 </Button>
+                <p className="text-[11px] text-zinc-500 mt-2 text-center">
+                  The AI reads your label so you can check it before submitting.
+                </p>
               </div>
             </Card>
           </div>
         </div>
       )}
+
+      {review && (
+        <div className="space-y-4">
+          <Card
+            className={`p-5 ${
+              hasConcerns
+                ? "bg-amber-500/5 border-amber-500/25"
+                : "bg-emerald-500/5 border-emerald-500/25"
+            }`}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3 min-w-0">
+                {hasConcerns ? (
+                  <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+                ) : (
+                  <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
+                )}
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-zinc-100">
+                    {hasConcerns
+                      ? "The label doesn't match everything you entered"
+                      : "Everything on the label checks out"}
+                  </p>
+                  <p className="text-sm text-zinc-400 mt-1">
+                    {mismatchedFields.length > 0 && (
+                      <>
+                        {formatFieldList(mismatchedFields.map((f) => f.displayName))}{" "}
+                        {mismatchedFields.length === 1 ? "does" : "do"} not match
+                        the label.{" "}
+                      </>
+                    )}
+                    {missingFields.length > 0 && (
+                      <>
+                        {formatFieldList(missingFields.map((f) => f.displayName))}{" "}
+                        {missingFields.length === 1 ? "was" : "were"} not found on
+                        the label.{" "}
+                      </>
+                    )}
+                    {hasConcerns
+                      ? "You can fix the label and review again, or submit as is and let a specialist decide."
+                      : "You're ready to submit this label for review."}
+                  </p>
+                  {isReviewStale && (
+                    <p className="text-xs text-amber-300 mt-2">
+                      You changed something since this review. Run Review again to
+                      see up-to-date results.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting || isReviewing || isReviewStale}
+                size="lg"
+                className={`shrink-0 gap-2 text-white ${
+                  hasConcerns
+                    ? "bg-amber-600 hover:bg-amber-700"
+                    : "bg-emerald-600 hover:bg-emerald-700"
+                }`}
+              >
+                <Send className="h-4 w-4" />
+                {isSubmitting
+                  ? "Submitting..."
+                  : hasConcerns
+                    ? "Submit anyway"
+                    : "Submit application"}
+              </Button>
+            </div>
+          </Card>
+
+          <VerificationCard result={review} />
+        </div>
+      )}
     </div>
   );
+}
+
+function formatFieldList(names: string[]): string {
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")}, and ${names[names.length - 1]}`;
 }
 
 function readFileAsDataUrl(file: File): Promise<string> {

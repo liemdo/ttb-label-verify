@@ -57,18 +57,9 @@ export function buildVerificationResult(
 
     const isRequired = req.required && (!req.onlyIf || req.onlyIf === "imported");
 
-    let expectedValue: string | undefined;
-    if (appData) {
-      const fieldMap: Record<string, string | undefined> = {
-        brandName: appData.brandName,
-        classType: appData.classType,
-        alcoholContent: appData.alcoholContent,
-        netContents: appData.netContents,
-        producerAddress: appData.producerAddress,
-        countryOfOrigin: appData.countryOfOrigin,
-      };
-      expectedValue = fieldMap[req.field];
-    }
+    // Field names line up with the guideline definitions, so a stated value is
+    // simply looked up by field name.
+    const expectedValue = appData?.[req.field]?.trim() || undefined;
 
     let status: VerificationStatus = "not_checked";
     let notes = "";

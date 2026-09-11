@@ -101,6 +101,48 @@ export const FIELD_DISPLAY_NAMES: Record<string, string> = {
 };
 
 // ============================================================
+// Manual entry placeholders
+// ============================================================
+
+export const BEVERAGE_TYPE_LABELS: Record<string, string> = {
+  spirits: "Distilled Spirits",
+  wine: "Wine",
+  beer: "Malt Beverage (Beer)",
+};
+
+/**
+ * Example values shown per beverage type, since what a bourbon label states
+ * looks nothing like what a beer label states.
+ */
+export const FIELD_PLACEHOLDERS: Record<string, Record<string, string>> = {
+  spirits: {
+    brandName: "e.g. OLD TOM DISTILLERY",
+    classType: "e.g. Kentucky Straight Bourbon Whiskey",
+    alcoholContent: "e.g. 45% Alc./Vol. (90 Proof)",
+    netContents: "e.g. 750 mL",
+    producerAddress: "e.g. Distilled and bottled by Old Tom, Frankfort, KY",
+    countryOfOrigin: "e.g. Product of Scotland",
+  },
+  wine: {
+    brandName: "e.g. SONOMA RIDGE",
+    classType: "e.g. Cabernet Sauvignon",
+    alcoholContent: "e.g. 13.5% Alc./Vol.",
+    netContents: "e.g. 750 mL",
+    producerAddress: "e.g. Produced and bottled by Sonoma Ridge, Napa, CA",
+    countryOfOrigin: "e.g. Product of France",
+    sulfiteDeclaration: "e.g. Contains Sulfites",
+  },
+  beer: {
+    brandName: "e.g. BLUE MOUNTAIN",
+    classType: "e.g. India Pale Ale",
+    alcoholContent: "e.g. 6.2% Alc./Vol.",
+    netContents: "e.g. 12 fl oz (355 mL)",
+    producerAddress: "e.g. Brewed by Blue Mountain Brewery, Portland, OR",
+    countryOfOrigin: "e.g. Product of Belgium",
+  },
+};
+
+// ============================================================
 // Image & batch constants
 // ============================================================
 
