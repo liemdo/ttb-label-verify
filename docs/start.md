@@ -9,19 +9,26 @@ Welcome to the AI-Powered Alcohol Label Verification App prototype.
    npm install
    ```
 
-2. **Configure API Key (Required for AI Mode):**
-   Create a `.env.local` file in the root directory:
+2. **Configure Environment Variables:**
+   Create a `.env.local` file in the root directory and add your API keys and database URL:
    ```env
    OPENAI_API_KEY=sk-your-openai-api-key
+   DATABASE_URL=postgresql://user:password@endpoint.neon.tech/neondb?sslmode=require
    ```
    *(Alternatively, you can enter the key directly in the app's Settings page).*
 
-3. **Start the development server:**
+3. **Push the Database Schema:**
+   Ensure your Neon database is running and apply the schema:
+   ```bash
+   npx drizzle-kit push
+   ```
+
+4. **Start the development server:**
    ```bash
    npm run dev
    ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Walkthrough
 

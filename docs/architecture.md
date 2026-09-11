@@ -14,10 +14,11 @@ graph TB
         DASH --> SETT["/settings"]
     end
 
-    subgraph "Backend - Next.js API Routes"
+    subgraph "Backend - Next.js API Routes & Actions"
         API["POST /api/verify"] --> ROUTER{"OCR Router"}
         ROUTER -->|AI Mode| OPENAI["OpenAI GPT-4o"]
         ROUTER -->|Network Fail| FALLBACK["Auto-suggest Tesseract"]
+        ACTIONS["Server Actions"] --> DB[(Neon PostgreSQL)]
     end
 
     subgraph "Client-Side Processing"
@@ -32,6 +33,7 @@ graph TB
 
     VERIFY -->|AI Mode| API
     VERIFY -->|Tesseract Mode| TESS
+    VERIFY -->|Save/Fetch| ACTIONS
     OPENAI --> VALID
     TESS --> VALID
     VALID --> DIFF
@@ -49,13 +51,15 @@ graph TB
 - **Offline OCR**: Tesseract.js (WebAssembly)
 - **Drag & Drop**: react-dropzone
 
+- **Database**: Neon Serverless PostgreSQL
+- **ORM**: Drizzle ORM
+
 ## State Management
 
-The application uses React Context for global state, persisted to `localStorage` (or `sessionStorage` for auth) to simulate a database for the prototype:
+The application uses a hybrid approach for state:
 
-1. **`AuthContext`**: Manages the currently logged-in agent.
-2. **`SettingsContext`**: Manages OCR engine choice, API keys, and preferences.
-3. **`ResultsContext`**: Manages the history of verifications, manual overrides, agent notes, and dashboard statistics.
+1. **`AuthContext` & `SettingsContext`**: Client-side preferences and session data persisted via `localStorage`/`sessionStorage`.
+2. **`ResultsContext`**: Provides an optimistic UI layer for the verification history, which is synchronised with the remote **Neon PostgreSQL** database via Next.js **Server Actions**. This allows all agents to share a unified view of history, overrides, and notes.
 
 ## Data Flow: Verification
 
@@ -66,7 +70,7 @@ The application uses React Context for global state, persisted to `localStorage`
 3. **Validation**: Extracted fields are passed to the Verification Engine (`lib/verification.ts`).
 4. **Rules Application**: `lib/ttb-guidelines.ts` determines which fields are required based on beverage type.
 5. **Diffing**: `lib/diff.ts` runs an LCS algorithm to find exact character differences in the Government Warning.
-6. **Result Generation**: A `VerificationResult` object is created and saved to `ResultsContext`.
+6. **Result Generation**: A `VerificationResult` object is created and saved to the Neon database via Server Actions, broadcasting to the global `ResultsContext`.
 
 ## OCR Abstraction Layer
 
