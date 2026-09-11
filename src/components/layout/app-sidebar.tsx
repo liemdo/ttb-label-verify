@@ -15,10 +15,12 @@ import {
   Shield,
   Cpu,
   Bot,
+  FolderOpen,
 } from "lucide-react";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/applications", label: "Applications", icon: FolderOpen },
   { href: "/verify", label: "Verify Label", icon: ScanSearch },
   { href: "/guidelines", label: "TTB Guidelines", icon: BookOpen },
   { href: "/history", label: "Review History", icon: History },
@@ -75,12 +77,12 @@ export function AppSidebar() {
               key={item.href}
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
-                isActive
+                isActive || (item.href === '/applications' && pathname.startsWith('/applications'))
                   ? "bg-blue-500/15 text-blue-400 font-medium"
                   : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60"
               }`}
             >
-              <item.icon className={`h-4 w-4 ${isActive ? "text-blue-400" : ""}`} />
+              <item.icon className={`h-4 w-4 ${isActive || (item.href === '/applications' && pathname.startsWith('/applications')) ? "text-blue-400" : ""}`} />
               {item.label}
             </Link>
           );

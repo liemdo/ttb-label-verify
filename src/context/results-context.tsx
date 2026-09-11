@@ -9,7 +9,9 @@ import {
   saveResultsAction, 
   updateNotesAction, 
   updateFieldsAction, 
-  clearResultsAction 
+  clearResultsAction,
+  deleteResultAction,
+  updateCompanyNameAction,
 } from "@/actions/results";
 
 interface ResultsContextType {
@@ -19,6 +21,8 @@ interface ResultsContextType {
   updateResult: (id: string, updates: Partial<VerificationResult>) => void;
   addOverride: (resultId: string, override: FieldOverride) => void;
   updateAgentNotes: (resultId: string, notes: string) => void;
+  deleteResult: (id: string) => Promise<void>;
+  updateCompanyName: (id: string, companyName: string) => Promise<void>;
   getResult: (id: string) => VerificationResult | undefined;
   clearResults: () => void;
   stats: {
@@ -28,6 +32,7 @@ interface ResultsContextType {
     needsReview: number;
     todayCount: number;
     totalTimeSavedMs: number;
+    todayTimeSavedMs: number;
   };
   isLoading: boolean;
 }
@@ -123,6 +128,18 @@ export function ResultsProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  const deleteResult = useCallback(async (id: string) => {
+    setResults((prev) => prev.filter((r) => r.id !== id));
+    await deleteResultAction(id);
+  }, []);
+
+  const updateCompanyName = useCallback(async (id: string, companyName: string) => {
+    setResults((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, companyName } : r))
+    );
+    await updateCompanyNameAction(id, companyName);
+  }, []);
+
   const getResult = useCallback(
     (id: string) => results.find((r) => r.id === id),
     [results]
@@ -144,7 +161,12 @@ export function ResultsProvider({ children }: { children: React.ReactNode }) {
       rejected: results.filter((r) => r.overallVerdict === "rejected").length,
       needsReview: results.filter((r) => r.overallVerdict === "needs_review").length,
       todayCount: todayResults.length,
-      totalTimeSavedMs: todayResults.reduce(
+      // Cumulative across all reviews — used for stakeholder impact metrics
+      totalTimeSavedMs: results.reduce(
+        (sum, r) => sum + (r.timeSavedMs ?? MANUAL_REVIEW_TIME_MS),
+        0
+      ),
+      todayTimeSavedMs: todayResults.reduce(
         (sum, r) => sum + (r.timeSavedMs ?? MANUAL_REVIEW_TIME_MS),
         0
       ),
@@ -160,6 +182,8 @@ export function ResultsProvider({ children }: { children: React.ReactNode }) {
         updateResult,
         addOverride,
         updateAgentNotes,
+        deleteResult,
+        updateCompanyName,
         getResult,
         clearResults,
         stats,
