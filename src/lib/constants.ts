@@ -1,4 +1,4 @@
-import type { Agent } from "@/types";
+import type { Agent, Applicant } from "@/types";
 
 // ============================================================
 // Predefined Agents
@@ -36,6 +36,45 @@ export const AGENTS: Agent[] = [
     department: "Technology Services",
     initials: "MW",
     color: "#F59E0B",
+  },
+];
+
+// ============================================================
+// Predefined Applicants (companies submitting labels)
+// ============================================================
+
+export const APPLICANTS: Applicant[] = [
+  {
+    id: "oak-barrel-distilling",
+    companyName: "Oak Barrel Distilling Co.",
+    contactName: "Ruth Alvarez",
+    role: "Compliance Contact",
+    initials: "OB",
+    color: "#B45309",
+  },
+  {
+    id: "napa-valley-vintners",
+    companyName: "Napa Valley Vintners",
+    contactName: "Thomas Reed",
+    role: "Label Coordinator",
+    initials: "NV",
+    color: "#9333EA",
+  },
+  {
+    id: "crafty-brews",
+    companyName: "Crafty Brews LLC",
+    contactName: "Priya Raman",
+    role: "Brand Manager",
+    initials: "CB",
+    color: "#0D9488",
+  },
+  {
+    id: "highland-spirits",
+    companyName: "Highland Spirits",
+    contactName: "Callum Fraser",
+    role: "Regulatory Affairs",
+    initials: "HS",
+    color: "#2563EB",
   },
 ];
 

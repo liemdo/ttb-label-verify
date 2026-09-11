@@ -10,7 +10,7 @@ import { AlertCircle, CheckCircle2, FileText, Info } from "lucide-react";
 
 export default function GuidelinesPage() {
   return (
-    <AuthGuard>
+    <AuthGuard allow={["specialist", "applicant"]}>
       <GuidelinesContent />
     </AuthGuard>
   );

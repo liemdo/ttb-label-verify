@@ -18,6 +18,7 @@ import {
   updateNotesAction,
   updateFieldsAction,
   updateCompanyNameAction,
+  updateReviewStatusAction,
 } from "@/actions/results";
 import {
   ensureCompanyAction,
@@ -25,14 +26,17 @@ import {
   type Company,
 } from "@/actions/companies";
 import { useResults } from "@/context/results-context";
+import { useAuth } from "@/context/auth-context";
 import { ConfirmDeleteDialog } from "@/components/shared/confirm-delete-dialog";
+import { ReviewStatusBadge } from "@/components/shared/status-badge";
 import type { FieldOverride, VerificationResult } from "@/types";
-import { Building2, Plus, Trash2 } from "lucide-react";
+import { Building2, CheckCircle2, Plus, Trash2 } from "lucide-react";
 
 const NEW_COMPANY_VALUE = "__new__";
 
 export function AnalystView({ initialResult }: { initialResult: VerificationResult }) {
   const router = useRouter();
+  const { agent } = useAuth();
   const { deleteResult } = useResults();
   const [result, setResult] = useState(initialResult);
   const [overrideField, setOverrideField] = useState<string | null>(null);
@@ -42,6 +46,7 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
   const [isSavingCompany, setIsSavingCompany] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isSigningOff, setIsSigningOff] = useState(false);
 
   useEffect(() => {
     fetchCompaniesAction().then(setCompanies).catch(console.error);
@@ -118,6 +123,30 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
     await saveCompany(value);
   };
 
+  const handleSignOff = async () => {
+    if (!agent) return;
+
+    setIsSigningOff(true);
+    try {
+      await updateReviewStatusAction(result.id, "reviewed", {
+        agentId: agent.id,
+        agentName: agent.name,
+      });
+      setResult((prev) => ({
+        ...prev,
+        reviewStatus: "reviewed",
+        agentId: agent.id,
+        agentName: agent.name,
+      }));
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to sign off on this application. Please try again.");
+    } finally {
+      setIsSigningOff(false);
+    }
+  };
+
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
@@ -143,6 +172,38 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
 
   return (
     <>
+      {result.submissionSource === "applicant" && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-blue-500/25 bg-blue-500/5 p-4">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="text-sm font-medium text-zinc-200">
+                Submitted through the applicant portal
+              </p>
+              <ReviewStatusBadge status={result.reviewStatus} />
+            </div>
+            <p className="text-xs text-zinc-400 mt-1">
+              {result.submittedByName
+                ? `Filed by ${result.submittedByName} at ${result.companyName}.`
+                : `Filed by ${result.companyName}.`}{" "}
+              {result.reviewStatus === "awaiting_review"
+                ? "Automated checks have run; sign off to confirm your review."
+                : `Reviewed by ${result.agentName}.`}
+            </p>
+          </div>
+          {result.reviewStatus === "awaiting_review" && (
+            <Button
+              type="button"
+              onClick={handleSignOff}
+              disabled={isSigningOff}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shrink-0"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              {isSigningOff ? "Signing off..." : "Sign Off Review"}
+            </Button>
+          )}
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 rounded-lg border border-zinc-800 bg-zinc-950 p-4">
         <div className="space-y-2 flex-1 min-w-0">
           <div className="flex items-center gap-2">

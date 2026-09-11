@@ -28,7 +28,8 @@ interface ApplicationFormProps {
     beverageType: BeverageType,
     skipComparison: boolean
   ) => void;
-  onCompanyChange: (companyName: string) => void;
+  /** Omit to lock the company, as when an applicant submits their own label. */
+  onCompanyChange?: (companyName: string) => void;
 }
 
 export function ApplicationForm({
@@ -44,9 +45,12 @@ export function ApplicationForm({
   const [isNewCompany, setIsNewCompany] = useState(false);
   const [newCompanyName, setNewCompanyName] = useState("");
 
+  const companyLocked = !onCompanyChange;
+
   useEffect(() => {
+    if (companyLocked) return;
     fetchCompaniesAction().then(setCompanies).catch(console.error);
-  }, []);
+  }, [companyLocked]);
 
   const handleDataChange = (field: keyof ApplicationData, value: string) => {
     const newData = { ...data, [field]: value };
@@ -65,6 +69,7 @@ export function ApplicationForm({
   };
 
   const handleCompanySelect = (value: string) => {
+    if (!onCompanyChange) return;
     if (value === NEW_COMPANY_VALUE) {
       setIsNewCompany(true);
       setNewCompanyName("");
@@ -78,7 +83,7 @@ export function ApplicationForm({
 
   const handleNewCompanyChange = (value: string) => {
     setNewCompanyName(value);
-    onCompanyChange(value);
+    onCompanyChange?.(value);
   };
 
   const selectValue = isNewCompany
@@ -94,46 +99,58 @@ export function ApplicationForm({
           <Building2 className="h-4 w-4 text-zinc-400" />
           <h3 className="text-sm font-medium text-zinc-200">Submitting Company</h3>
         </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs text-zinc-400">Company</Label>
-          <Select
-            value={selectValue}
-            onValueChange={(value) => {
-              if (value != null) handleCompanySelect(String(value));
-            }}
-          >
-            <SelectTrigger className="bg-zinc-900 border-zinc-800 w-full">
-              <SelectValue placeholder="Select or add a company" />
-            </SelectTrigger>
-            <SelectContent>
-              {companies.map((company) => (
-                <SelectItem key={company.id} value={company.name}>
-                  {company.name}
-                </SelectItem>
-              ))}
-              <SelectItem value={NEW_COMPANY_VALUE}>
-                <span className="flex items-center gap-1.5">
-                  <Plus className="h-3.5 w-3.5" />
-                  Add new company
-                </span>
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {isNewCompany && (
-          <div className="space-y-1.5">
-            <Label className="text-xs text-zinc-400">New company name</Label>
-            <Input
-              placeholder="e.g. Oak Barrel Distilling Co."
-              value={newCompanyName}
-              onChange={(e) => handleNewCompanyChange(e.target.value)}
-              className="bg-zinc-900 border-zinc-800"
-              autoFocus
-            />
-            <p className="text-[11px] text-zinc-500">
-              This company will be saved to the database when you run verification.
+        {companyLocked ? (
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2.5">
+            <p className="text-sm text-zinc-200">{companyName}</p>
+            <p className="text-[11px] text-zinc-500 mt-0.5">
+              Labels are filed under your company account
             </p>
           </div>
+        ) : (
+          <>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-zinc-400">Company</Label>
+              <Select
+                value={selectValue}
+                onValueChange={(value) => {
+                  if (value != null) handleCompanySelect(String(value));
+                }}
+              >
+                <SelectTrigger className="bg-zinc-900 border-zinc-800 w-full">
+                  <SelectValue placeholder="Select or add a company" />
+                </SelectTrigger>
+                <SelectContent>
+                  {companies.map((company) => (
+                    <SelectItem key={company.id} value={company.name}>
+                      {company.name}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value={NEW_COMPANY_VALUE}>
+                    <span className="flex items-center gap-1.5">
+                      <Plus className="h-3.5 w-3.5" />
+                      Add new company
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {isNewCompany && (
+              <div className="space-y-1.5">
+                <Label className="text-xs text-zinc-400">New company name</Label>
+                <Input
+                  placeholder="e.g. Oak Barrel Distilling Co."
+                  value={newCompanyName}
+                  onChange={(e) => handleNewCompanyChange(e.target.value)}
+                  className="bg-zinc-900 border-zinc-800"
+                  autoFocus
+                />
+                <p className="text-[11px] text-zinc-500">
+                  This company will be saved to the database when you run
+                  verification.
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
 

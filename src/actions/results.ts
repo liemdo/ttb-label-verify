@@ -3,8 +3,67 @@
 import { db } from "@/db";
 import { verificationResults } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
-import type { VerificationResult, LabelField } from "@/types";
+import type {
+  VerificationResult,
+  LabelField,
+  ReviewStatus,
+  SubmissionSource,
+} from "@/types";
 import { revalidatePath } from "next/cache";
+
+type ResultRow = typeof verificationResults.$inferSelect;
+
+function toVerificationResult(r: ResultRow): VerificationResult {
+  return {
+    id: r.id,
+    fileName: r.fileName,
+    companyName: r.companyName,
+    imageDataUrl: r.imageDataUrl,
+    beverageType: r.beverageType as VerificationResult["beverageType"],
+    overallVerdict: r.overallVerdict as VerificationResult["overallVerdict"],
+    fields: r.fields,
+    ocrEngine: r.ocrEngine as VerificationResult["ocrEngine"],
+    processingTimeMs: r.processingTimeMs,
+    agentId: r.agentId,
+    agentName: r.agentName,
+    timestamp: r.timestamp.toISOString(),
+    agentNotes: r.agentNotes || undefined,
+    timeSavedMs: r.timeSavedMs || undefined,
+    submissionSource: r.submissionSource as SubmissionSource,
+    submittedByName: r.submittedByName || undefined,
+    reviewStatus: r.reviewStatus as ReviewStatus,
+  };
+}
+
+function toInsertValues(result: VerificationResult) {
+  return {
+    id: result.id,
+    fileName: result.fileName,
+    companyName: result.companyName,
+    imageDataUrl: result.imageDataUrl,
+    beverageType: result.beverageType,
+    overallVerdict: result.overallVerdict,
+    fields: result.fields,
+    ocrEngine: result.ocrEngine,
+    processingTimeMs: result.processingTimeMs,
+    agentId: result.agentId,
+    agentName: result.agentName,
+    timestamp: new Date(result.timestamp),
+    agentNotes: result.agentNotes || null,
+    timeSavedMs: result.timeSavedMs || null,
+    submissionSource: result.submissionSource,
+    submittedByName: result.submittedByName || null,
+    reviewStatus: result.reviewStatus,
+  };
+}
+
+function revalidateResultViews(id?: string) {
+  revalidatePath("/history");
+  revalidatePath("/dashboard");
+  revalidatePath("/applications");
+  revalidatePath("/portal");
+  if (id) revalidatePath(`/applications/${id}`);
+}
 
 export async function fetchResultsAction(): Promise<VerificationResult[]> {
   try {
@@ -12,25 +71,28 @@ export async function fetchResultsAction(): Promise<VerificationResult[]> {
       .select()
       .from(verificationResults)
       .orderBy(desc(verificationResults.timestamp));
-    
-    return results.map((r) => ({
-      id: r.id,
-      fileName: r.fileName,
-      companyName: r.companyName,
-      imageDataUrl: r.imageDataUrl,
-      beverageType: r.beverageType as any,
-      overallVerdict: r.overallVerdict as any,
-      fields: r.fields,
-      ocrEngine: r.ocrEngine as any,
-      processingTimeMs: r.processingTimeMs,
-      agentId: r.agentId,
-      agentName: r.agentName,
-      timestamp: r.timestamp.toISOString(),
-      agentNotes: r.agentNotes || undefined,
-      timeSavedMs: r.timeSavedMs || undefined,
-    }));
+
+    return results.map(toVerificationResult);
   } catch (error) {
     console.error("Failed to fetch results from database:", error);
+    return [];
+  }
+}
+
+/** Applicants only ever see the labels their own company submitted. */
+export async function fetchResultsByCompanyAction(
+  companyName: string
+): Promise<VerificationResult[]> {
+  try {
+    const results = await db
+      .select()
+      .from(verificationResults)
+      .where(eq(verificationResults.companyName, companyName))
+      .orderBy(desc(verificationResults.timestamp));
+
+    return results.map(toVerificationResult);
+  } catch (error) {
+    console.error("Failed to fetch results for company:", error);
     return [];
   }
 }
@@ -42,26 +104,9 @@ export async function fetchResultByIdAction(id: string): Promise<VerificationRes
       .from(verificationResults)
       .where(eq(verificationResults.id, id))
       .limit(1);
-    
+
     if (results.length === 0) return null;
-    const r = results[0];
-    
-    return {
-      id: r.id,
-      fileName: r.fileName,
-      companyName: r.companyName,
-      imageDataUrl: r.imageDataUrl,
-      beverageType: r.beverageType as any,
-      overallVerdict: r.overallVerdict as any,
-      fields: r.fields,
-      ocrEngine: r.ocrEngine as any,
-      processingTimeMs: r.processingTimeMs,
-      agentId: r.agentId,
-      agentName: r.agentName,
-      timestamp: r.timestamp.toISOString(),
-      agentNotes: r.agentNotes || undefined,
-      timeSavedMs: r.timeSavedMs || undefined,
-    };
+    return toVerificationResult(results[0]);
   } catch (error) {
     console.error("Failed to fetch result by ID:", error);
     return null;
@@ -70,25 +115,8 @@ export async function fetchResultByIdAction(id: string): Promise<VerificationRes
 
 export async function saveResultAction(result: VerificationResult): Promise<void> {
   try {
-    await db.insert(verificationResults).values({
-      id: result.id,
-      fileName: result.fileName,
-      companyName: result.companyName,
-      imageDataUrl: result.imageDataUrl,
-      beverageType: result.beverageType,
-      overallVerdict: result.overallVerdict,
-      fields: result.fields,
-      ocrEngine: result.ocrEngine,
-      processingTimeMs: result.processingTimeMs,
-      agentId: result.agentId,
-      agentName: result.agentName,
-      timestamp: new Date(result.timestamp),
-      agentNotes: result.agentNotes || null,
-      timeSavedMs: result.timeSavedMs || null,
-    });
-    revalidatePath("/history");
-    revalidatePath("/dashboard");
-    revalidatePath("/applications");
+    await db.insert(verificationResults).values(toInsertValues(result));
+    revalidateResultViews();
   } catch (err) {
     console.error("Failed to save result:", err);
     throw new Error("Database insertion failed");
@@ -98,26 +126,8 @@ export async function saveResultAction(result: VerificationResult): Promise<void
 export async function saveResultsAction(results: VerificationResult[]): Promise<void> {
   if (results.length === 0) return;
   try {
-    const values = results.map(result => ({
-      id: result.id,
-      fileName: result.fileName,
-      companyName: result.companyName,
-      imageDataUrl: result.imageDataUrl,
-      beverageType: result.beverageType,
-      overallVerdict: result.overallVerdict,
-      fields: result.fields,
-      ocrEngine: result.ocrEngine,
-      processingTimeMs: result.processingTimeMs,
-      agentId: result.agentId,
-      agentName: result.agentName,
-      timestamp: new Date(result.timestamp),
-      agentNotes: result.agentNotes || null,
-      timeSavedMs: result.timeSavedMs || null,
-    }));
-    await db.insert(verificationResults).values(values);
-    revalidatePath("/history");
-    revalidatePath("/dashboard");
-    revalidatePath("/applications");
+    await db.insert(verificationResults).values(results.map(toInsertValues));
+    revalidateResultViews();
   } catch (err) {
     console.error("Failed to batch save results:", err);
     throw new Error("Database batch insertion failed");
@@ -128,20 +138,39 @@ export async function updateNotesAction(id: string, notes: string): Promise<void
   await db.update(verificationResults)
     .set({ agentNotes: notes })
     .where(eq(verificationResults.id, id));
+  revalidateResultViews(id);
 }
 
 export async function updateFieldsAction(id: string, fields: LabelField[], overallVerdict: string): Promise<void> {
   await db.update(verificationResults)
     .set({ fields, overallVerdict })
     .where(eq(verificationResults.id, id));
+  revalidateResultViews(id);
+}
+
+/** Records that a specialist has signed off on (or reopened) an AI result. */
+export async function updateReviewStatusAction(
+  id: string,
+  reviewStatus: ReviewStatus,
+  reviewer?: { agentId: string; agentName: string }
+): Promise<void> {
+  await db
+    .update(verificationResults)
+    .set({
+      reviewStatus,
+      ...(reviewer && reviewStatus === "reviewed"
+        ? { agentId: reviewer.agentId, agentName: reviewer.agentName }
+        : {}),
+    })
+    .where(eq(verificationResults.id, id));
+
+  revalidateResultViews(id);
 }
 
 export async function deleteResultAction(id: string): Promise<void> {
   try {
     await db.delete(verificationResults).where(eq(verificationResults.id, id));
-    revalidatePath("/history");
-    revalidatePath("/dashboard");
-    revalidatePath("/applications");
+    revalidateResultViews();
   } catch (error) {
     console.error("Failed to delete result:", error);
     throw new Error("Failed to delete application");
@@ -162,15 +191,10 @@ export async function updateCompanyNameAction(
     .set({ companyName: trimmed })
     .where(eq(verificationResults.id, id));
 
-  revalidatePath("/applications");
-  revalidatePath(`/applications/${id}`);
-  revalidatePath("/dashboard");
-  revalidatePath("/history");
+  revalidateResultViews(id);
 }
 
 export async function clearResultsAction(): Promise<void> {
   await db.delete(verificationResults);
-  revalidatePath("/history");
-  revalidatePath("/dashboard");
-  revalidatePath("/applications");
+  revalidateResultViews();
 }

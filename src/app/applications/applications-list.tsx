@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { VerdictBadge } from "@/components/shared/status-badge";
+import { ReviewStatusBadge, VerdictBadge } from "@/components/shared/status-badge";
 import { ConfirmDeleteDialog } from "@/components/shared/confirm-delete-dialog";
 import { Button } from "@/components/ui/button";
 import { useResults } from "@/context/results-context";
@@ -83,15 +83,30 @@ export function ApplicationsList({
                     <span className="text-zinc-600">•</span>
                     <span className="capitalize shrink-0">{result.beverageType}</span>
                   </p>
+                  {result.submissionSource === "applicant" && (
+                    <p className="text-xs text-zinc-500 mt-1">
+                      Submitted via applicant portal
+                      {result.submittedByName ? ` by ${result.submittedByName}` : ""}
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm text-zinc-300">{result.agentName}</p>
+                  <p className="text-sm text-zinc-300">
+                    {result.reviewStatus === "awaiting_review"
+                      ? "Unassigned"
+                      : result.agentName}
+                  </p>
                   <p className="text-xs text-zinc-500">
                     {new Date(result.timestamp).toLocaleDateString()}
                   </p>
                 </div>
+                {result.reviewStatus === "awaiting_review" && (
+                  <div className="hidden md:block">
+                    <ReviewStatusBadge status={result.reviewStatus} />
+                  </div>
+                )}
                 <VerdictBadge verdict={result.overallVerdict} />
                 <Button
                   type="button"

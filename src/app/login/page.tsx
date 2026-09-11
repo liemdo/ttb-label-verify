@@ -1,20 +1,24 @@
 "use client";
 
+import { useState } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { AgentSelector } from "@/components/auth/agent-selector";
-import { Shield } from "lucide-react";
+import { ApplicantSelector } from "@/components/auth/applicant-selector";
+import { Building2, Shield } from "lucide-react";
+import type { UserRole } from "@/types";
 
 export default function LoginPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, homeRoute } = useAuth();
   const router = useRouter();
+  const [portal, setPortal] = useState<UserRole>("specialist");
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/dashboard");
+      router.replace(homeRoute);
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, homeRoute, router]);
 
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6">
@@ -23,7 +27,7 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-2xl">
         {/* Logo & title */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 mb-5 shadow-lg shadow-blue-500/20">
             <Shield className="h-8 w-8 text-white" />
           </div>
@@ -33,13 +37,43 @@ export default function LoginPage() {
           <p className="text-zinc-400 mt-2 text-base">
             AI-Powered Alcohol Label Compliance Tool
           </p>
-          <p className="text-zinc-600 mt-1 text-sm">
-            Select your agent profile to sign in
-          </p>
         </div>
 
-        {/* Agent cards */}
-        <AgentSelector />
+        {/* Portal toggle */}
+        <div className="flex justify-center mb-6">
+          <div className="inline-flex items-center bg-zinc-900 rounded-lg p-1 border border-zinc-800">
+            <button
+              onClick={() => setPortal("specialist")}
+              className={`flex items-center gap-2 px-4 py-2 text-sm rounded-md transition-colors ${
+                portal === "specialist"
+                  ? "bg-zinc-800 text-white font-medium shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-300"
+              }`}
+            >
+              <Shield className="h-4 w-4" />
+              TTB Specialist
+            </button>
+            <button
+              onClick={() => setPortal("applicant")}
+              className={`flex items-center gap-2 px-4 py-2 text-sm rounded-md transition-colors ${
+                portal === "applicant"
+                  ? "bg-zinc-800 text-white font-medium shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-300"
+              }`}
+            >
+              <Building2 className="h-4 w-4" />
+              Applicant
+            </button>
+          </div>
+        </div>
+
+        <p className="text-center text-sm text-zinc-600 mb-6">
+          {portal === "specialist"
+            ? "Select your agent profile to review submitted labels"
+            : "Select your company to submit a label for review"}
+        </p>
+
+        {portal === "specialist" ? <AgentSelector /> : <ApplicantSelector />}
 
         {/* Footer */}
         <p className="text-center text-xs text-zinc-700 mt-10">

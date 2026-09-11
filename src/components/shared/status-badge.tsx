@@ -1,8 +1,8 @@
 "use client";
 
-import type { VerificationStatus } from "@/types";
+import type { ReviewStatus, VerificationStatus } from "@/types";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, AlertTriangle, MinusCircle, PenLine } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, MinusCircle, PenLine, Clock } from "lucide-react";
 
 const statusConfig: Record<
   VerificationStatus,
@@ -82,6 +82,34 @@ export function VerdictBadge({ verdict }: VerdictBadgeProps) {
     <Badge variant="outline" className={`${c.className} text-sm px-3 py-1 inline-flex items-center gap-1.5 font-semibold`}>
       {c.icon}
       {c.label}
+    </Badge>
+  );
+}
+
+interface ReviewStatusBadgeProps {
+  status: ReviewStatus;
+}
+
+export function ReviewStatusBadge({ status }: ReviewStatusBadgeProps) {
+  if (status === "reviewed") {
+    return (
+      <Badge
+        variant="outline"
+        className="bg-zinc-500/15 text-zinc-300 border-zinc-500/30 text-xs px-2 py-0.5 inline-flex items-center gap-1 font-medium"
+      >
+        <CheckCircle2 className="h-3 w-3" />
+        Specialist reviewed
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge
+      variant="outline"
+      className="bg-blue-500/15 text-blue-300 border-blue-500/40 text-xs px-2 py-0.5 inline-flex items-center gap-1 font-medium"
+    >
+      <Clock className="h-3 w-3" />
+      Awaiting review
     </Badge>
   );
 }

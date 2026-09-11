@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from "react";
 import type { VerificationResult, FieldOverride } from "@/types";
 import { MANUAL_REVIEW_TIME_MS } from "@/lib/constants";
+import { useAuth } from "@/context/auth-context";
 import { 
   fetchResultsAction, 
   saveResultAction, 
@@ -40,10 +41,19 @@ interface ResultsContextType {
 const ResultsContext = createContext<ResultsContextType | undefined>(undefined);
 
 export function ResultsProvider({ children }: { children: React.ReactNode }) {
+  const { isSpecialist } = useAuth();
   const [results, setResults] = useState<VerificationResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Only TTB staff get the full queue; applicants load just their own
+  // submissions through the portal.
   useEffect(() => {
+    if (!isSpecialist) {
+      setResults([]);
+      setIsLoading(false);
+      return;
+    }
+
     fetchResultsAction().then((dbResults) => {
       setResults(dbResults);
       setIsLoading(false);
@@ -51,7 +61,7 @@ export function ResultsProvider({ children }: { children: React.ReactNode }) {
       console.error("Failed to load results on mount", err);
       setIsLoading(false);
     });
-  }, []);
+  }, [isSpecialist]);
 
   const addResult = useCallback((result: VerificationResult) => {
     setResults((prev) => [result, ...prev]);

@@ -2,11 +2,23 @@
 // Authentication
 // ============================================================
 
+/** TTB staff review labels; applicants are the companies submitting them. */
+export type UserRole = "specialist" | "applicant";
+
 export interface Agent {
   id: string;
   name: string;
   role: string;
   department: string;
+  initials: string;
+  color: string;
+}
+
+export interface Applicant {
+  id: string;
+  companyName: string;
+  contactName: string;
+  role: string;
   initials: string;
   color: string;
 }
@@ -89,6 +101,12 @@ export interface LabelField {
   required: boolean;
 }
 
+/** Whether the label arrived through the company portal or was keyed in by staff. */
+export type SubmissionSource = "applicant" | "specialist";
+
+/** Tracks whether a specialist has signed off on the AI result. */
+export type ReviewStatus = "awaiting_review" | "reviewed";
+
 export interface VerificationResult {
   id: string;
   fileName: string;
@@ -104,6 +122,9 @@ export interface VerificationResult {
   timestamp: string;
   agentNotes?: string;
   timeSavedMs?: number;
+  submissionSource: SubmissionSource;
+  submittedByName?: string;
+  reviewStatus: ReviewStatus;
 }
 
 // ============================================================
@@ -139,6 +160,8 @@ export interface VerifyRequest {
   openaiModel?: string;
   applicationData?: ApplicationData;
   companyName?: string;
+  submissionSource?: SubmissionSource;
+  submittedByName?: string;
 }
 
 export interface ApplicationData {

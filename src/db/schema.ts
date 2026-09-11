@@ -22,4 +22,7 @@ export const verificationResults = pgTable("verification_results", {
   timestamp: timestamp("timestamp").notNull().defaultNow(),
   agentNotes: text("agent_notes"),
   timeSavedMs: integer("time_saved_ms"),
+  submissionSource: text("submission_source").notNull().default("specialist"),
+  submittedByName: text("submitted_by_name"),
+  reviewStatus: text("review_status").notNull().default("reviewed"),
 });

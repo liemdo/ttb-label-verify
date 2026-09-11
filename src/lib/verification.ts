@@ -7,6 +7,7 @@ import type {
   BeverageType,
   OcrEngine,
   VerificationStatus,
+  SubmissionSource,
 } from "@/types";
 import { FIELD_DISPLAY_NAMES, MANUAL_REVIEW_TIME_MS } from "@/lib/constants";
 import { getGuidelineForBeverage } from "@/lib/ttb-guidelines";
@@ -36,6 +37,8 @@ export function buildVerificationResult(
     agentId: string;
     agentName: string;
     processingTimeMs: number;
+    submissionSource?: SubmissionSource;
+    submittedByName?: string;
   }
 ): VerificationResult {
   const guideline = getGuidelineForBeverage(options.beverageType);
@@ -126,6 +129,11 @@ export function buildVerificationResult(
     agentName: options.agentName,
     timestamp: new Date().toISOString(),
     timeSavedMs: Math.max(0, timeSavedMs),
+    submissionSource: options.submissionSource ?? "specialist",
+    submittedByName: options.submittedByName,
+    // Portal submissions still need a specialist to sign off on the AI result
+    reviewStatus:
+      options.submissionSource === "applicant" ? "awaiting_review" : "reviewed",
   };
 }
 

@@ -28,6 +28,14 @@ const COMPANIES = [
   "Apex Whiskey Co."
 ];
 
+/** Contacts for the companies that have applicant portal logins. */
+const PORTAL_CONTACTS: Record<string, string> = {
+  "Oak Barrel Distilling Co.": "Ruth Alvarez",
+  "Napa Valley Vintners": "Thomas Reed",
+  "Crafty Brews LLC": "Priya Raman",
+  "Highland Spirits": "Callum Fraser",
+};
+
 const AGENTS = [
   { id: "agent-1", name: "Sarah Chen" },
   { id: "agent-2", name: "Dave Morrison" },
@@ -80,6 +88,11 @@ async function seed() {
     
     const base64Img = getBase64Image(beverageType);
 
+    // Roughly a third of the queue arrives through the applicant portal and
+    // still needs a specialist to sign off.
+    const viaPortal = i % 3 === 0;
+    const portalContact = PORTAL_CONTACTS[company];
+
     resultsToInsert.push({
       id: `seed-app-${i}-${Date.now()}`,
       fileName: `applicant_label_${i}.jpg`,
@@ -90,11 +103,14 @@ async function seed() {
       fields: [], // Dummy empty fields for seed data to keep it light
       ocrEngine: "openai",
       processingTimeMs: Math.floor(Math.random() * 2000) + 500,
-      agentId: agent.id,
-      agentName: agent.name,
+      agentId: viaPortal ? "unassigned" : agent.id,
+      agentName: viaPortal ? "Unassigned" : agent.name,
       timestamp: new Date(Date.now() - Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000)), // Random date in last 7 days
       agentNotes: verdict === "rejected" ? "Missing government warning" : null,
       timeSavedMs: Math.floor(Math.random() * 50000) + 10000,
+      submissionSource: viaPortal ? "applicant" : "specialist",
+      submittedByName: viaPortal ? (portalContact ?? "Compliance Contact") : null,
+      reviewStatus: viaPortal ? "awaiting_review" : "reviewed",
     });
   }
 

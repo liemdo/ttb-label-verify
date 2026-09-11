@@ -22,6 +22,8 @@ export async function POST(request: Request) {
       agentId = "unknown",
       agentName = "Unknown Agent",
       companyName,
+      submissionSource,
+      submittedByName,
     } = body;
 
     if (!imageBase64) {
@@ -68,6 +70,8 @@ export async function POST(request: Request) {
         agentId,
         agentName,
         processingTimeMs,
+        submissionSource,
+        submittedByName,
       });
 
       return NextResponse.json({ success: true, result });
