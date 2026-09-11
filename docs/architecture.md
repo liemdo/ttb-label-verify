@@ -7,11 +7,15 @@ This document outlines the technical architecture of the AI-Powered Alcohol Labe
 ```mermaid
 graph TB
     subgraph "Frontend - Next.js App Router"
-        LOGIN["/login"] --> DASH["/dashboard"]
+        LOGIN["/login"] -->|specialist| DASH["/dashboard"]
+        LOGIN -->|applicant| PORTAL["/portal"]
+        DASH --> APPS["/applications"]
         DASH --> VERIFY["/verify"]
         DASH --> GUIDE["/guidelines"]
         DASH --> HIST["/history"]
         DASH --> SETT["/settings"]
+        PORTAL --> SUBMIT["/portal/submit"]
+        PORTAL --> GUIDE
     end
 
     subgraph "Backend - Next.js API Routes & Actions"
@@ -53,6 +57,15 @@ graph TB
 
 - **Database**: Neon Serverless PostgreSQL
 - **ORM**: Drizzle ORM
+
+## Roles
+
+The prototype has two kinds of user, both signed in by picking a profile:
+
+1. **Specialist** — TTB staff. Sees the dashboard, the full applications queue, the verification tool, history, and settings. When creating an application they must attribute it to a company, either an existing one or a new one they add.
+2. **Applicant** — a company submitting labels. Sees only its own submissions and the submit form. Submitting runs the AI checks immediately, then the application enters the queue as `awaiting_review` until a specialist signs off.
+
+`AuthGuard` defaults to specialist-only and takes an `allow` list for pages that either role may open.
 
 ## State Management
 
