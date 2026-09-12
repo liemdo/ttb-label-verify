@@ -21,8 +21,11 @@ export default async function ApplicationDetailPage({
 
   return (
     <AuthGuard>
-      <div className="p-6 max-w-[90rem] mx-auto space-y-6">
-        <div className="flex items-center gap-4">
+      <div
+        data-detail-workspace
+        className="h-full min-h-0 overflow-hidden flex flex-col gap-4 p-6 max-w-[90rem] mx-auto"
+      >
+        <div className="flex items-center gap-4 shrink-0">
           <Link href="/applications" className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors border border-border bg-card">
             <ChevronLeft className="h-5 w-5" />
           </Link>

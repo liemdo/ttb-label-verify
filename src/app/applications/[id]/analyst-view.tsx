@@ -171,9 +171,9 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
         : "";
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-hidden">
       {result.submissionSource === "applicant" && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-blue-500/25 bg-blue-500/5 p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-blue-500/25 bg-blue-500/5 p-4 shrink-0">
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
@@ -204,7 +204,7 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 rounded-lg border border-border bg-card p-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 rounded-lg border border-border bg-card p-4 shrink-0">
         <div className="space-y-2 flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <Building2 className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
@@ -276,11 +276,13 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
         </Button>
       </div>
 
-      <VerificationCard
-        result={result}
-        onUpdateNotes={handleUpdateNotes}
-        onOverrideField={setOverrideField}
-      />
+      <div className="flex-1 min-h-0">
+        <VerificationCard
+          result={result}
+          onUpdateNotes={handleUpdateNotes}
+          onOverrideField={setOverrideField}
+        />
+      </div>
 
       {activeField && (
         <OverrideDialog

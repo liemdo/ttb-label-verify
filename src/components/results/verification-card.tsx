@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { VerificationResult } from "@/types";
 import { VerdictBadge } from "@/components/shared/status-badge";
 import { TimeSaved } from "@/components/results/time-saved";
@@ -35,10 +35,35 @@ export function VerificationCard({
     [result.fields]
   );
 
+  const detailsRef = useRef<HTMLDivElement>(null);
+
+  // The page used to be the scroll container, which moved the label. On
+  // desktop, send the wheel to the details pane instead — except over the
+  // image, which uses the wheel to zoom.
+  useEffect(() => {
+    const details = detailsRef.current;
+    if (!details) return;
+
+    const workspace = (details.closest("[data-detail-workspace]") ??
+      details.closest("[data-slot='card']")) as HTMLElement | null;
+    if (!workspace) return;
+
+    const onWheel = (event: WheelEvent) => {
+      if (!window.matchMedia("(min-width: 1024px)").matches) return;
+      if ((event.target as Element | null)?.closest("[data-label-image]")) return;
+
+      event.preventDefault();
+      details.scrollTop += event.deltaY;
+    };
+
+    workspace.addEventListener("wheel", onWheel, { passive: false });
+    return () => workspace.removeEventListener("wheel", onWheel);
+  }, []);
+
   return (
-    <Card className="!overflow-visible border-border bg-card shadow-xl">
+    <Card className="h-full min-h-0 overflow-hidden border-border bg-card shadow-xl py-0 gap-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 border-b border-border bg-muted/40 rounded-t-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 border-b border-border bg-muted/40 shrink-0">
         <div>
           <div className="flex items-center gap-3 mb-1">
             <ScanSearch className="h-5 w-5 text-zinc-500 dark:text-zinc-400" />
@@ -72,17 +97,16 @@ export function VerificationCard({
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row lg:items-start">
-        {/* Left column stays pinned at the top of the scrollport */}
+      <div className="flex flex-col lg:flex-row flex-1 min-h-0">
         {!hideImage && result.imageDataUrl && (
-          <div className="w-full lg:w-3/5 lg:sticky lg:top-4 lg:self-start lg:h-[calc(100dvh-5.5rem)] border-b lg:border-b-0 lg:border-r border-border bg-muted/30 p-5 flex flex-col">
+          <div className="w-full lg:w-3/5 border-b lg:border-b-0 lg:border-r border-border bg-muted/30 p-5 flex flex-col min-h-[360px] lg:min-h-0 overflow-hidden">
             <LabelImageViewer src={result.imageDataUrl} />
           </div>
         )}
 
-        {/* Right column scrolls independently so the label never moves */}
         <div
-          className={`w-full ${hideImage ? "" : "lg:w-2/5 lg:sticky lg:top-4 lg:self-start lg:h-[calc(100dvh-5.5rem)] lg:overflow-y-auto custom-scrollbar"} p-5 space-y-6`}
+          ref={detailsRef}
+          className={`w-full ${hideImage ? "" : "lg:w-2/5"} p-5 space-y-6 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar`}
         >
           <div>
             <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-3">Verification Details</h3>

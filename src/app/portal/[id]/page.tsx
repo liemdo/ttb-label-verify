@@ -43,8 +43,11 @@ function SubmissionDetail({ id }: { id: string }) {
     result !== null && result.companyName === applicant?.companyName;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
-      <div className="flex items-center gap-4">
+    <div
+      data-detail-workspace
+      className="h-full min-h-0 overflow-hidden flex flex-col gap-4 p-6 max-w-[90rem] mx-auto"
+    >
+      <div className="flex items-center gap-4 shrink-0">
         <Link
           href="/portal"
           className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950"
@@ -72,7 +75,7 @@ function SubmissionDetail({ id }: { id: string }) {
         </Card>
       ) : (
         <>
-          <Card className="p-4 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-3">
+          <Card className="p-4 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-3 shrink-0">
             <div>
               <p className="text-sm text-zinc-700 dark:text-zinc-300">Review status</p>
               <p className="text-xs text-zinc-500 mt-0.5">
@@ -84,7 +87,9 @@ function SubmissionDetail({ id }: { id: string }) {
             <ReviewStatusBadge status={result.reviewStatus} />
           </Card>
 
-          <VerificationCard result={result} />
+          <div className="flex-1 min-h-0">
+            <VerificationCard result={result} />
+          </div>
         </>
       )}
     </div>
