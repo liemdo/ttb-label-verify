@@ -109,7 +109,7 @@ export function ReviewStatusBadge({ status }: ReviewStatusBadgeProps) {
       className="bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/40 text-xs px-2 py-0.5 inline-flex items-center gap-1 font-medium"
     >
       <Clock className="h-3 w-3" />
-      Awaiting review
+        Awaiting specialist
     </Badge>
   );
 }

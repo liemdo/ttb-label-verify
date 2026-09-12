@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import type { VerificationResult } from "@/types";
-import { VerdictBadge } from "@/components/shared/status-badge";
+import { ReviewStatusBadge, VerdictBadge } from "@/components/shared/status-badge";
 import { TimeSaved } from "@/components/results/time-saved";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -92,7 +92,10 @@ export function VerificationCard({
             />
           </div>
         </div>
-        <div className="shrink-0">
+        <div className="shrink-0 flex flex-wrap items-center justify-end gap-2">
+          {result.submissionSource === "applicant" && (
+            <ReviewStatusBadge status={result.reviewStatus} />
+          )}
           <VerdictBadge verdict={result.overallVerdict} />
         </div>
       </div>

@@ -6,7 +6,6 @@ import { AuthGuard } from "@/components/auth/auth-guard";
 import { useAuth } from "@/context/auth-context";
 import { fetchResultByIdAction } from "@/actions/results";
 import { VerificationCard } from "@/components/results/verification-card";
-import { ReviewStatusBadge } from "@/components/shared/status-badge";
 import { LoadingSpinner } from "@/components/shared/loading-spinner";
 import { Card } from "@/components/ui/card";
 import type { VerificationResult } from "@/types";
@@ -74,23 +73,9 @@ function SubmissionDetail({ id }: { id: string }) {
           </p>
         </Card>
       ) : (
-        <>
-          <Card className="p-4 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-3 shrink-0">
-            <div>
-              <p className="text-sm text-zinc-700 dark:text-zinc-300">Review status</p>
-              <p className="text-xs text-zinc-500 mt-0.5">
-                {result.reviewStatus === "awaiting_review"
-                  ? "Automated checks are complete. A TTB specialist still needs to sign off."
-                  : "A TTB specialist has reviewed this submission."}
-              </p>
-            </div>
-            <ReviewStatusBadge status={result.reviewStatus} />
-          </Card>
-
-          <div className="flex-1 min-h-0">
-            <VerificationCard result={result} />
-          </div>
-        </>
+        <div className="flex-1 min-h-0">
+          <VerificationCard result={result} />
+        </div>
       )}
     </div>
   );
