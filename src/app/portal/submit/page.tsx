@@ -173,15 +173,15 @@ function SubmitLabelContent() {
       <div className="flex items-center gap-4">
         <Link
           href="/portal"
-          className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100 transition-colors border border-zinc-800 bg-zinc-950"
+          className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950"
         >
           <ChevronLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-white">
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">
             {review ? "Review your label information" : "Submit a Label"}
           </h1>
-          <p className="text-zinc-400 mt-1">
+          <p className="text-zinc-500 dark:text-zinc-400 mt-1">
             {review
               ? "Step 2 of 2 — confirm what the AI read, then submit"
               : "Step 1 of 2 — upload your label and run a review"}
@@ -229,7 +229,7 @@ function SubmitLabelContent() {
           </div>
 
           <div>
-            <Card className="p-5 bg-zinc-950 border-zinc-800">
+            <Card className="p-5 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
               <ApplicationForm
                 defaultBeverageType={beverageType}
                 companyName={applicant?.companyName ?? ""}
@@ -240,7 +240,7 @@ function SubmitLabelContent() {
                 }}
               />
 
-              <div className="mt-6 pt-6 border-t border-zinc-800">
+              <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
                 <Button
                   onClick={handleReview}
                   disabled={isReviewing}

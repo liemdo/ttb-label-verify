@@ -18,9 +18,9 @@ export function WarningDiffView({ extractedWarning }: WarningDiffViewProps) {
         <p className="text-xs text-zinc-500">
           The mandatory government warning statement was not detected on this label.
         </p>
-        <div className="mt-3 p-3 bg-zinc-900 rounded border border-zinc-800">
+        <div className="mt-3 p-3 bg-zinc-50 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-800">
           <p className="text-xs text-zinc-500 mb-1">Required text:</p>
-          <p className="text-xs text-zinc-400 leading-relaxed">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
             {GOVERNMENT_WARNING_TEXT}
           </p>
         </div>
@@ -58,7 +58,7 @@ export function WarningDiffView({ extractedWarning }: WarningDiffViewProps) {
             </span>
           </div>
 
-          <div className="p-3 bg-zinc-900 rounded border border-zinc-800 text-sm leading-relaxed">
+          <div className="p-3 bg-zinc-50 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-800 text-sm leading-relaxed">
             {segments.map((seg: DiffSegment, i: number) => (
               <span
                 key={i}
@@ -67,7 +67,7 @@ export function WarningDiffView({ extractedWarning }: WarningDiffViewProps) {
                     ? "bg-red-500/20 text-red-300 line-through"
                     : seg.type === "added"
                     ? "bg-emerald-500/20 text-emerald-300"
-                    : "text-zinc-300"
+                    : "text-zinc-700 dark:text-zinc-300"
                 }
               >
                 {seg.text}
@@ -78,7 +78,7 @@ export function WarningDiffView({ extractedWarning }: WarningDiffViewProps) {
       )}
 
       {isExactMatch && (
-        <p className="text-xs text-zinc-400 leading-relaxed p-3 bg-zinc-900 rounded border border-zinc-800">
+        <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed p-3 bg-zinc-50 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-800">
           {GOVERNMENT_WARNING_TEXT}
         </p>
       )}

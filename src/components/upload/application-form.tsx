@@ -125,12 +125,12 @@ export function ApplicationForm({
     <div className="space-y-6">
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Building2 className="h-4 w-4 text-zinc-400" />
-          <h3 className="text-sm font-medium text-zinc-200">Submitting Company</h3>
+          <Building2 className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+          <h3 className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Submitting Company</h3>
         </div>
         {companyLocked ? (
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2.5">
-            <p className="text-sm text-zinc-200">{companyName}</p>
+          <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 px-3 py-2.5">
+            <p className="text-sm text-zinc-800 dark:text-zinc-200">{companyName}</p>
             <p className="text-[11px] text-zinc-500 mt-0.5">
               Labels are filed under your company account
             </p>
@@ -138,14 +138,14 @@ export function ApplicationForm({
         ) : (
           <>
             <div className="space-y-1.5">
-              <Label className="text-xs text-zinc-400">Company</Label>
+              <Label className="text-xs text-zinc-500 dark:text-zinc-400">Company</Label>
               <Select
                 value={selectValue}
                 onValueChange={(value) => {
                   if (value != null) handleCompanySelect(String(value));
                 }}
               >
-                <SelectTrigger className="bg-zinc-900 border-zinc-800 w-full">
+                <SelectTrigger className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 w-full">
                   <SelectValue placeholder="Select or add a company" />
                 </SelectTrigger>
                 <SelectContent>
@@ -165,12 +165,12 @@ export function ApplicationForm({
             </div>
             {isNewCompany && (
               <div className="space-y-1.5">
-                <Label className="text-xs text-zinc-400">New company name</Label>
+                <Label className="text-xs text-zinc-500 dark:text-zinc-400">New company name</Label>
                 <Input
                   placeholder="e.g. Oak Barrel Distilling Co."
                   value={newCompanyName}
                   onChange={(e) => handleNewCompanyChange(e.target.value)}
-                  className="bg-zinc-900 border-zinc-800"
+                  className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
                   autoFocus
                 />
                 <p className="text-[11px] text-zinc-500">
@@ -186,8 +186,8 @@ export function ApplicationForm({
       {/* Product details are optional: the AI reads whatever is on the label,
           and stated values simply give it something to check against. */}
       {!isManualEntry ? (
-        <div className="rounded-lg border border-dashed border-zinc-800 bg-zinc-900/40 p-4 text-center">
-          <p className="text-sm text-zinc-300">Product information</p>
+        <div className="rounded-lg border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/40 p-4 text-center">
+          <p className="text-sm text-zinc-700 dark:text-zinc-300">Product information</p>
           <p className="text-xs text-zinc-500 mt-1">
             The AI reads these details straight from your label. Enter them
             yourself to have the label checked against what you expect.
@@ -196,7 +196,7 @@ export function ApplicationForm({
             type="button"
             variant="outline"
             onClick={enableManualEntry}
-            className="mt-4 border-zinc-700 text-zinc-200 hover:bg-zinc-800 gap-2"
+            className="mt-4 border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 gap-2"
           >
             <Pencil className="h-4 w-4" />
             Enter information manually
@@ -205,7 +205,7 @@ export function ApplicationForm({
       ) : (
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-medium text-zinc-200">
+            <h3 className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
               Product information
             </h3>
             <Button
@@ -213,7 +213,7 @@ export function ApplicationForm({
               variant="ghost"
               size="sm"
               onClick={disableManualEntry}
-              className="h-7 gap-1.5 px-2 text-zinc-500 hover:text-zinc-300"
+              className="h-7 gap-1.5 px-2 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
             >
               <X className="h-3.5 w-3.5" />
               <span className="text-xs">Clear</span>
@@ -221,14 +221,14 @@ export function ApplicationForm({
           </div>
 
           <div className="space-y-1.5">
-            <Label className="text-xs text-zinc-400">Beverage Type</Label>
+            <Label className="text-xs text-zinc-500 dark:text-zinc-400">Beverage Type</Label>
             <Select
               value={beverageType}
               onValueChange={(v) => {
                 if (v != null) handleTypeChange(String(v) as BeverageType);
               }}
             >
-              <SelectTrigger className="bg-zinc-900 border-zinc-800 w-full">
+              <SelectTrigger className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 w-full">
                 <SelectValue>{BEVERAGE_TYPE_LABELS[beverageType]}</SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -245,10 +245,10 @@ export function ApplicationForm({
             </p>
           </div>
 
-          <div className="space-y-4 pt-2 border-t border-zinc-800/50">
+          <div className="space-y-4 pt-2 border-t border-zinc-200 dark:border-zinc-800/50">
             {fields.map((field) => (
               <div key={field.field} className="space-y-1.5">
-                <Label className="text-xs text-zinc-400 flex items-center gap-2">
+                <Label className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
                   {FIELD_DISPLAY_NAMES[field.field] || field.displayName}
                   {field.onlyIf === "imported" && (
                     <span className="text-[10px] text-zinc-600 uppercase tracking-wide">
@@ -260,7 +260,7 @@ export function ApplicationForm({
                   placeholder={placeholders[field.field] ?? ""}
                   value={data[field.field] || ""}
                   onChange={(e) => handleDataChange(field.field, e.target.value)}
-                  className="bg-zinc-900 border-zinc-800"
+                  className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
                 />
               </div>
             ))}

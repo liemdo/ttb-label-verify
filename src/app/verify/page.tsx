@@ -269,14 +269,14 @@ function VerifyContent() {
     <div className="p-6 max-w-6xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Label Verification</h1>
-          <p className="text-zinc-400 mt-1">Upload and verify alcohol labels against TTB requirements</p>
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Label Verification</h1>
+          <p className="text-zinc-500 dark:text-zinc-400 mt-1">Upload and verify alcohol labels against TTB requirements</p>
         </div>
-        <div className="flex items-center bg-zinc-900 rounded-lg p-1 border border-zinc-800">
+        <div className="flex items-center bg-zinc-50 dark:bg-zinc-900 rounded-lg p-1 border border-zinc-200 dark:border-zinc-800">
           <button
             onClick={() => { setMode("single"); clearFiles(); }}
             className={`px-4 py-1.5 text-sm rounded-md transition-colors ${
-              mode === "single" ? "bg-zinc-800 text-white font-medium shadow-sm" : "text-zinc-400 hover:text-zinc-300"
+              mode === "single" ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-medium shadow-sm" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
             }`}
           >
             Single
@@ -284,7 +284,7 @@ function VerifyContent() {
           <button
             onClick={() => { setMode("batch"); clearFiles(); }}
             className={`px-4 py-1.5 text-sm rounded-md transition-colors ${
-              mode === "batch" ? "bg-zinc-800 text-white font-medium shadow-sm" : "text-zinc-400 hover:text-zinc-300"
+              mode === "batch" ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-medium shadow-sm" : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
             }`}
           >
             Batch Upload
@@ -332,7 +332,7 @@ function VerifyContent() {
             </div>
 
             <div>
-              <Card className="p-5 bg-zinc-950 border-zinc-800">
+              <Card className="p-5 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
                 <ApplicationForm
                   defaultBeverageType={beverageType}
                   companyName={companyName}
@@ -344,7 +344,7 @@ function VerifyContent() {
                   }}
                 />
 
-                <div className="mt-6 pt-6 border-t border-zinc-800">
+                <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
                   <Button
                     onClick={handleVerify}
                     disabled={files.length === 0 || isProcessing || !companyName.trim()}
@@ -385,7 +385,7 @@ function VerifyContent() {
             <Button
               onClick={clearFiles}
               variant="outline"
-              className="border-zinc-700 text-zinc-300 hover:bg-zinc-800 gap-2"
+              className="border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 gap-2"
             >
               <RotateCcw className="h-4 w-4" />
               Verify Another

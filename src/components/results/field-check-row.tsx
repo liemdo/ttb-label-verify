@@ -21,13 +21,13 @@ export function FieldCheckRow({ field, onOverride }: FieldCheckRowProps) {
           ? "border-red-500/20 bg-red-500/5"
           : field.status === "warning"
           ? "border-amber-500/20 bg-amber-500/5"
-          : "border-zinc-800 bg-zinc-900/30"
+          : "border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/30"
       }`}
     >
       {/* Header: title + meta actions */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex items-center gap-2 flex-wrap pt-0.5">
-          <span className="text-sm font-medium text-zinc-200">
+          <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
             {field.displayName}
           </span>
           {field.required && (
@@ -45,7 +45,7 @@ export function FieldCheckRow({ field, onOverride }: FieldCheckRowProps) {
               variant="ghost"
               size="sm"
               onClick={onOverride}
-              className="h-7 gap-1.5 px-2 text-zinc-500 hover:text-zinc-300"
+              className="h-7 gap-1.5 px-2 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
               title="Override result"
             >
               <PenLine className="h-3.5 w-3.5" />
@@ -61,7 +61,7 @@ export function FieldCheckRow({ field, onOverride }: FieldCheckRowProps) {
           <span className="text-zinc-500 text-xs">Extracted: </span>
           <span
             className={
-              field.extractedValue ? "text-zinc-300" : "text-zinc-600 italic"
+              field.extractedValue ? "text-zinc-700 dark:text-zinc-300" : "text-zinc-400 italic dark:text-zinc-600"
             }
           >
             {field.extractedValue
@@ -76,7 +76,7 @@ export function FieldCheckRow({ field, onOverride }: FieldCheckRowProps) {
         {field.expectedValue && (
           <div className="text-sm leading-relaxed">
             <span className="text-zinc-500 text-xs">Expected: </span>
-            <span className="text-zinc-400">{field.expectedValue}</span>
+            <span className="text-zinc-500 dark:text-zinc-400">{field.expectedValue}</span>
           </div>
         )}
 

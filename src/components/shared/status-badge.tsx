@@ -12,25 +12,25 @@ const statusConfig: Record<
     label: "Pass",
     variant: "default",
     icon: <CheckCircle2 className="h-3 w-3" />,
-    className: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30",
+    className: "bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/30",
   },
   fail: {
     label: "Fail",
     variant: "destructive",
     icon: <XCircle className="h-3 w-3" />,
-    className: "bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30",
+    className: "bg-red-500/20 text-red-700 dark:text-red-400 border-red-500/30 hover:bg-red-500/30",
   },
   warning: {
     label: "Warning",
     variant: "secondary",
     icon: <AlertTriangle className="h-3 w-3" />,
-    className: "bg-amber-500/20 text-amber-400 border-amber-500/30 hover:bg-amber-500/30",
+    className: "bg-amber-500/20 text-amber-700 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/30",
   },
   not_checked: {
     label: "Not Checked",
     variant: "outline",
     icon: <MinusCircle className="h-3 w-3" />,
-    className: "bg-zinc-500/20 text-zinc-400 border-zinc-500/30 hover:bg-zinc-500/30",
+    className: "bg-zinc-500/20 text-zinc-500 dark:text-zinc-400 border-zinc-500/30 hover:bg-zinc-500/30",
   },
 };
 
@@ -62,17 +62,17 @@ export function VerdictBadge({ verdict }: VerdictBadgeProps) {
   const config = {
     approved: {
       label: "Approved",
-      className: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
+      className: "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/40",
       icon: <CheckCircle2 className="h-4 w-4" />,
     },
     rejected: {
       label: "Rejected",
-      className: "bg-red-500/20 text-red-300 border-red-500/40",
+      className: "bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/40",
       icon: <XCircle className="h-4 w-4" />,
     },
     needs_review: {
       label: "Needs Review",
-      className: "bg-amber-500/20 text-amber-300 border-amber-500/40",
+      className: "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40",
       icon: <AlertTriangle className="h-4 w-4" />,
     },
   };
@@ -95,7 +95,7 @@ export function ReviewStatusBadge({ status }: ReviewStatusBadgeProps) {
     return (
       <Badge
         variant="outline"
-        className="bg-zinc-500/15 text-zinc-300 border-zinc-500/30 text-xs px-2 py-0.5 inline-flex items-center gap-1 font-medium"
+        className="bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 border-zinc-500/30 text-xs px-2 py-0.5 inline-flex items-center gap-1 font-medium"
       >
         <CheckCircle2 className="h-3 w-3" />
         Specialist reviewed
@@ -106,7 +106,7 @@ export function ReviewStatusBadge({ status }: ReviewStatusBadgeProps) {
   return (
     <Badge
       variant="outline"
-      className="bg-blue-500/15 text-blue-300 border-blue-500/40 text-xs px-2 py-0.5 inline-flex items-center gap-1 font-medium"
+      className="bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/40 text-xs px-2 py-0.5 inline-flex items-center gap-1 font-medium"
     >
       <Clock className="h-3 w-3" />
       Awaiting review

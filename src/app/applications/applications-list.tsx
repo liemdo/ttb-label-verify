@@ -42,11 +42,11 @@ export function ApplicationsList({
 
   if (results.length === 0) {
     return (
-      <div className="p-16 border border-zinc-800 rounded-lg bg-zinc-900/30 text-center flex flex-col items-center">
-        <div className="h-16 w-16 rounded-full bg-zinc-900 flex items-center justify-center mb-4">
+      <div className="p-16 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-zinc-50 dark:bg-zinc-900/30 text-center flex flex-col items-center">
+        <div className="h-16 w-16 rounded-full bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center mb-4">
           <FolderOpen className="h-8 w-8 text-zinc-600" />
         </div>
-        <h3 className="text-lg font-medium text-zinc-300">No Applications</h3>
+        <h3 className="text-lg font-medium text-zinc-700 dark:text-zinc-300">No Applications</h3>
         <p className="text-sm text-zinc-500 mt-2 max-w-sm">
           The application queue is currently empty.
         </p>
@@ -61,11 +61,11 @@ export function ApplicationsList({
           <Link
             key={result.id}
             href={`/applications/${result.id}`}
-            className="block border border-zinc-800 rounded-lg bg-zinc-950 p-4 hover:bg-zinc-900/50 transition-colors group"
+            className="block border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-950 p-4 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors group"
           >
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4 min-w-0">
-                <div className="h-12 w-12 rounded bg-zinc-800 overflow-hidden shrink-0 border border-zinc-700/50">
+                <div className="h-12 w-12 rounded bg-zinc-100 dark:bg-zinc-800 overflow-hidden shrink-0 border border-zinc-200 dark:border-zinc-700/50">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={result.imageDataUrl}
@@ -74,10 +74,10 @@ export function ApplicationsList({
                   />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="text-base font-medium text-zinc-100 truncate">
+                  <h3 className="text-base font-medium text-zinc-900 dark:text-zinc-100 truncate">
                     {result.fileName}
                   </h3>
-                  <p className="text-sm text-zinc-400 flex items-center gap-1.5 mt-0.5">
+                  <p className="text-sm text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5 mt-0.5">
                     <Building2 className="h-3.5 w-3.5 shrink-0 text-zinc-500" />
                     <span className="truncate">{result.companyName}</span>
                     <span className="text-zinc-600">•</span>
@@ -93,7 +93,7 @@ export function ApplicationsList({
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm text-zinc-300">
+                  <p className="text-sm text-zinc-700 dark:text-zinc-300">
                     {result.reviewStatus === "awaiting_review"
                       ? "Unassigned"
                       : result.agentName}

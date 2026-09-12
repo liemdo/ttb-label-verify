@@ -8,7 +8,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   openaiApiKey: "",
   openaiModel: "gpt-4o",
   defaultBeverageType: "spirits",
-  theme: "dark",
+  theme: "light",
 };
 
 interface SettingsContextType {

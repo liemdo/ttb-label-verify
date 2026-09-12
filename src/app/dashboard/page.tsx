@@ -36,10 +36,10 @@ function DashboardContent() {
     <div className="p-6 max-w-6xl mx-auto space-y-8">
       {/* Welcome banner */}
       <div>
-        <h1 className="text-2xl font-bold text-white">
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">
           Welcome back, {agent?.name?.split(" ")[0]}
         </h1>
-        <p className="text-zinc-400 mt-1">
+        <p className="text-zinc-500 dark:text-zinc-400 mt-1">
           {new Date().toLocaleDateString("en-US", {
             weekday: "long",
             year: "numeric",
@@ -97,13 +97,13 @@ function DashboardContent() {
       {/* Quick actions */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link href="/verify">
-          <Card className="p-5 bg-zinc-900/50 border-zinc-800 hover:border-blue-500/40 hover:bg-zinc-800/50 transition-all cursor-pointer group">
+          <Card className="p-5 bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 hover:border-blue-500/40 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-all cursor-pointer group">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-lg bg-blue-500/15 flex items-center justify-center group-hover:bg-blue-500/25 transition-colors">
                 <ScanSearch className="h-5 w-5 text-blue-400" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-zinc-200">
+                <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
                   Verify Label
                 </p>
                 <p className="text-xs text-zinc-500">Single label review</p>
@@ -112,13 +112,13 @@ function DashboardContent() {
           </Card>
         </Link>
         <Link href="/verify?mode=batch">
-          <Card className="p-5 bg-zinc-900/50 border-zinc-800 hover:border-indigo-500/40 hover:bg-zinc-800/50 transition-all cursor-pointer group">
+          <Card className="p-5 bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 hover:border-indigo-500/40 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-all cursor-pointer group">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-lg bg-indigo-500/15 flex items-center justify-center group-hover:bg-indigo-500/25 transition-colors">
                 <Upload className="h-5 w-5 text-indigo-400" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-zinc-200">
+                <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
                   Batch Upload
                 </p>
                 <p className="text-xs text-zinc-500">Process multiple labels</p>
@@ -127,13 +127,13 @@ function DashboardContent() {
           </Card>
         </Link>
         <Link href="/guidelines">
-          <Card className="p-5 bg-zinc-900/50 border-zinc-800 hover:border-amber-500/40 hover:bg-zinc-800/50 transition-all cursor-pointer group">
+          <Card className="p-5 bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 hover:border-amber-500/40 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 transition-all cursor-pointer group">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-lg bg-amber-500/15 flex items-center justify-center group-hover:bg-amber-500/25 transition-colors">
                 <BookOpen className="h-5 w-5 text-amber-400" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-zinc-200">
+                <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
                   TTB Guidelines
                 </p>
                 <p className="text-xs text-zinc-500">Review requirements</p>
@@ -146,7 +146,7 @@ function DashboardContent() {
       {/* Recent activity */}
       {recentResults.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold text-zinc-200 mb-4">
+          <h2 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-4">
             Recent Activity
           </h2>
           <div className="space-y-2">
@@ -156,10 +156,10 @@ function DashboardContent() {
                 href={`/applications/${r.id}`}
                 className="block"
               >
-                <Card className="p-4 bg-zinc-900/30 border-zinc-800 hover:bg-zinc-800/30 hover:border-zinc-700 transition-colors cursor-pointer">
+                <Card className="p-4 bg-zinc-50 dark:bg-zinc-900/30 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800/30 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors cursor-pointer">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded bg-zinc-800 border border-zinc-700 overflow-hidden shrink-0">
+                      <div className="h-10 w-10 rounded bg-zinc-100 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 overflow-hidden shrink-0">
                         {r.imageDataUrl && (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
@@ -170,7 +170,7 @@ function DashboardContent() {
                         )}
                       </div>
                       <div>
-                        <p className="text-sm text-zinc-200">{r.fileName}</p>
+                        <p className="text-sm text-zinc-800 dark:text-zinc-200">{r.fileName}</p>
                         <p className="text-xs text-zinc-500">
                           {new Date(r.timestamp).toLocaleString()} •{" "}
                           {r.ocrEngine === "openai" ? "AI" : "Tesseract"} •{" "}
@@ -188,7 +188,7 @@ function DashboardContent() {
       )}
 
       {recentResults.length === 0 && (
-        <Card className="p-12 bg-zinc-900/20 border-zinc-800 text-center">
+        <Card className="p-12 bg-zinc-50 dark:bg-zinc-900/20 border-zinc-200 dark:border-zinc-800 text-center">
           <ScanSearch className="h-12 w-12 text-zinc-700 mx-auto mb-4" />
           <p className="text-zinc-500">No labels reviewed yet</p>
           <p className="text-xs text-zinc-600 mt-1">
@@ -211,11 +211,11 @@ function StatCard({
   color: string;
 }) {
   return (
-    <Card className="p-4 bg-zinc-900/50 border-zinc-800">
+    <Card className="p-4 bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
       <div className="flex items-center justify-between mb-2">
         {icon}
       </div>
-      <p className="text-2xl font-bold text-zinc-100">{value}</p>
+      <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{value}</p>
       <p className="text-xs text-zinc-500 mt-0.5">{label}</p>
     </Card>
   );

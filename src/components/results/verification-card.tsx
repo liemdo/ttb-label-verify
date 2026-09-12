@@ -36,18 +36,18 @@ export function VerificationCard({
   );
 
   return (
-    <Card className="overflow-hidden border-zinc-800 bg-zinc-950 shadow-xl">
+    <Card className="overflow-hidden border-border bg-card shadow-xl flex flex-col min-h-0 lg:h-full">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 border-b border-zinc-800 bg-zinc-900/30">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 border-b border-border bg-muted/40 shrink-0">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <ScanSearch className="h-5 w-5 text-zinc-400" />
+            <ScanSearch className="h-5 w-5 text-zinc-500 dark:text-zinc-400" />
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold text-zinc-100 truncate max-w-[200px] sm:max-w-[300px]">
+              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 truncate max-w-[200px] sm:max-w-[300px]">
                 {result.fileName}
               </h2>
               {result.companyName && (
-                <span className="hidden sm:inline-flex px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 text-xs border border-indigo-500/20 whitespace-nowrap">
+                <span className="hidden sm:inline-flex px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 text-xs border border-indigo-500/20 whitespace-nowrap">
                   {result.companyName}
                 </span>
               )}
@@ -72,18 +72,18 @@ export function VerificationCard({
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row">
-        {/* Left column: Image — wider so agents can inspect label details */}
+      <div className="flex flex-col lg:flex-row lg:flex-1 lg:min-h-0">
+        {/* Left column: Image stays at the top while the fields scroll */}
         {!hideImage && result.imageDataUrl && (
-          <div className="w-full lg:w-3/5 border-r border-zinc-800 bg-zinc-900/20 p-5 flex flex-col">
+          <div className="w-full lg:w-3/5 lg:border-r border-border bg-muted/30 p-5 flex flex-col shrink-0 lg:min-h-0">
             <LabelImageViewer src={result.imageDataUrl} />
           </div>
         )}
 
         {/* Right column: Fields */}
-        <div className={`w-full ${hideImage ? "" : "lg:w-2/5"} p-5 space-y-6`}>
+        <div className={`w-full ${hideImage ? "" : "lg:w-2/5"} p-5 space-y-6 lg:overflow-y-auto lg:min-h-0 custom-scrollbar`}>
           <div>
-            <h3 className="text-sm font-medium text-zinc-400 mb-3">Verification Details</h3>
+            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-3">Verification Details</h3>
             <div className="space-y-2">
               {otherFields.map((field) => (
                 <FieldCheckRow
@@ -99,13 +99,13 @@ export function VerificationCard({
           {govWarningField && (
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-medium text-zinc-400">Government Warning Check</h3>
+                <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Government Warning Check</h3>
                 {onOverrideField && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => onOverrideField("governmentWarning")}
-                    className="h-7 gap-1.5 px-2 text-zinc-500 hover:text-zinc-300"
+                    className="h-7 gap-1.5 px-2 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
                     title="Override result"
                   >
                     <PenLine className="h-3.5 w-3.5" />
@@ -127,15 +127,15 @@ export function VerificationCard({
 
           {/* Agent Notes */}
           {onUpdateNotes && (
-            <div className="pt-4 border-t border-zinc-800">
+            <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
               <AgentNotes notes={result.agentNotes} onSave={onUpdateNotes} />
             </div>
           )}
           
           {!onUpdateNotes && result.agentNotes && (
-            <div className="pt-4 border-t border-zinc-800">
-              <h3 className="text-sm font-medium text-zinc-400 mb-2">Agent Notes</h3>
-              <p className="text-sm text-zinc-300 bg-zinc-900/50 p-3 rounded border border-zinc-800 whitespace-pre-wrap">
+            <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
+              <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Agent Notes</h3>
+              <p className="text-sm text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-900/50 p-3 rounded border border-zinc-200 dark:border-zinc-800 whitespace-pre-wrap">
                 {result.agentNotes}
               </p>
             </div>

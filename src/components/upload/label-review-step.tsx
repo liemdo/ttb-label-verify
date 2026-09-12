@@ -54,16 +54,16 @@ export function LabelReviewStep({
 
   return (
     <div className="space-y-6">
-      <Card className="p-5 bg-zinc-950 border-zinc-800">
+      <Card className="p-5 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-start gap-3 min-w-0">
             <Sparkles className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
             <div className="min-w-0">
-              <p className="text-sm font-medium text-zinc-100">
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 The AI filled in {filledByAi} of {editableFields.length} fields
                 from your label
               </p>
-              <p className="text-sm text-zinc-400 mt-1">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
                 Check each value against your artwork and correct anything the AI
                 misread. What you submit here is what the TTB specialist compares
                 against the label.
@@ -81,8 +81,8 @@ export function LabelReviewStep({
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
         <div className="lg:col-span-2 lg:sticky lg:top-6">
-          <Card className="p-4 bg-zinc-950 border-zinc-800">
-            <h2 className="text-sm font-medium text-zinc-200 mb-3">Your label</h2>
+          <Card className="p-4 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
+            <h2 className="text-sm font-medium text-zinc-800 dark:text-zinc-200 mb-3">Your label</h2>
             <LabelImageViewer
               src={result.imageDataUrl}
               alt={`Label for ${result.fileName}`}
@@ -91,8 +91,8 @@ export function LabelReviewStep({
         </div>
 
         <div className="lg:col-span-3 space-y-4">
-          <Card className="p-5 bg-zinc-950 border-zinc-800 space-y-5">
-            <h2 className="text-sm font-medium text-zinc-200">
+          <Card className="p-5 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 space-y-5">
+            <h2 className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
               Label information
             </h2>
 
@@ -105,7 +105,7 @@ export function LabelReviewStep({
               return (
                 <div key={field.fieldName} className="space-y-1.5">
                   <div className="flex items-center justify-between gap-2">
-                    <Label className="text-xs text-zinc-400 flex items-center gap-2">
+                    <Label className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
                       {field.displayName}
                       {field.required && (
                         <span className="text-[10px] text-zinc-600 uppercase tracking-wide">
@@ -120,7 +120,7 @@ export function LabelReviewStep({
                           variant="ghost"
                           size="sm"
                           onClick={() => onResetField(field.fieldName)}
-                          className="h-6 gap-1 px-1.5 text-zinc-500 hover:text-zinc-300"
+                          className="h-6 gap-1 px-1.5 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
                           title={`Restore what the AI read: ${readByAi}`}
                         >
                           <RotateCcw className="h-3 w-3" />
@@ -138,12 +138,12 @@ export function LabelReviewStep({
                         ? "The AI could not find this on your label — enter it yourself"
                         : ""
                     }
-                    className={`bg-zinc-900 ${
+                    className={`bg-zinc-50 dark:bg-zinc-900 ${
                       isCorrected
                         ? "border-indigo-500/40"
                         : notFound
                           ? "border-amber-500/30"
-                          : "border-zinc-800"
+                          : "border-zinc-200 dark:border-zinc-800"
                     }`}
                   />
 
@@ -169,9 +169,9 @@ export function LabelReviewStep({
           </Card>
 
           {warningField && (
-            <Card className="p-5 bg-zinc-950 border-zinc-800 space-y-2">
+            <Card className="p-5 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 space-y-2">
               <div className="flex items-center justify-between gap-2">
-                <h2 className="text-sm font-medium text-zinc-200">
+                <h2 className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
                   {warningField.displayName}
                 </h2>
                 <StatusBadge status={warningField.status} />
@@ -180,9 +180,9 @@ export function LabelReviewStep({
                 The mandated warning statement is fixed text, so it is checked
                 automatically rather than entered.
               </p>
-              <p className="text-sm text-zinc-300 leading-relaxed">
+              <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
                 {warningField.extractedValue || (
-                  <span className="text-zinc-600 italic">Not found on label</span>
+                  <span className="text-zinc-400 italic dark:text-zinc-600">Not found on label</span>
                 )}
               </p>
               {warningField.notes && (
@@ -208,12 +208,12 @@ export function LabelReviewStep({
               <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
             )}
             <div className="min-w-0">
-              <p className="text-sm font-medium text-zinc-100">
+              <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 {hasGaps
                   ? "Some required information is still missing"
                   : "Everything required is filled in"}
               </p>
-              <p className="text-sm text-zinc-400 mt-1">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
                 {blankRequired.length > 0 && (
                   <>
                     {blankRequired.map((f) => f.displayName).join(", ")}{" "}
@@ -234,7 +234,7 @@ export function LabelReviewStep({
               onClick={onBack}
               disabled={isSubmitting}
               size="lg"
-              className="gap-2 border-zinc-700 text-zinc-200 hover:bg-zinc-800"
+              className="gap-2 border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800"
             >
               <ChevronLeft className="h-4 w-4" />
               Back

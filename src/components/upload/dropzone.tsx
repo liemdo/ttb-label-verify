@@ -67,12 +67,12 @@ export function Dropzone({ onFilesSelected, isBatchMode, disabled }: DropzonePro
         {...getRootProps()}
         className={`relative overflow-hidden rounded-xl border-2 border-dashed transition-all p-10 flex flex-col items-center justify-center min-h-[250px] text-center cursor-pointer ${
           disabled
-            ? "bg-zinc-900/50 border-zinc-800 opacity-60 cursor-not-allowed"
+            ? "bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 opacity-60 cursor-not-allowed"
             : isDragReject
             ? "bg-red-500/10 border-red-500"
             : isDragActive
             ? "bg-blue-500/10 border-blue-500"
-            : "bg-zinc-900/50 border-zinc-700 hover:bg-zinc-800/50 hover:border-zinc-500"
+            : "bg-zinc-50 dark:bg-zinc-900/50 border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 hover:border-zinc-400 dark:hover:border-zinc-500"
         }`}
       >
         <input {...getInputProps()} />
@@ -83,7 +83,7 @@ export function Dropzone({ onFilesSelected, isBatchMode, disabled }: DropzonePro
               ? "bg-red-500/20 text-red-400"
               : isDragActive
               ? "bg-blue-500/20 text-blue-400"
-              : "bg-zinc-800 text-zinc-400"
+              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
           }`}
         >
           {isDragReject ? (
@@ -95,11 +95,11 @@ export function Dropzone({ onFilesSelected, isBatchMode, disabled }: DropzonePro
           )}
         </div>
 
-        <h3 className="text-lg font-semibold text-zinc-200 mb-1">
+        <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-1">
           {isDragActive ? "Drop labels here" : "Upload Label Images"}
         </h3>
         
-        <p className="text-sm text-zinc-400 max-w-md mx-auto">
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-md mx-auto">
           {isBatchMode
             ? `Drag & drop up to ${MAX_BATCH_SIZE} images, or click to browse.`
             : "Drag & drop a single label image, or click to browse."}

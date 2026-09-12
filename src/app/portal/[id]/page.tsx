@@ -47,34 +47,34 @@ function SubmissionDetail({ id }: { id: string }) {
       <div className="flex items-center gap-4">
         <Link
           href="/portal"
-          className="p-2 rounded-lg hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100 transition-colors border border-zinc-800 bg-zinc-950"
+          className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950"
         >
           <ChevronLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-white">Submission Details</h1>
-          <p className="text-zinc-400 mt-1">
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Submission Details</h1>
+          <p className="text-zinc-500 dark:text-zinc-400 mt-1">
             {result ? result.fileName : "Loading your submission..."}
           </p>
         </div>
       </div>
 
       {isLoading ? (
-        <Card className="p-12 bg-zinc-900/20 border-zinc-800">
+        <Card className="p-12 bg-zinc-50 dark:bg-zinc-900/20 border-zinc-200 dark:border-zinc-800">
           <LoadingSpinner message="Loading submission..." />
         </Card>
       ) : !isOwnSubmission ? (
-        <Card className="p-12 bg-zinc-900/20 border-zinc-800 text-center">
-          <p className="text-zinc-300 font-medium">Submission not found</p>
+        <Card className="p-12 bg-zinc-50 dark:bg-zinc-900/20 border-zinc-200 dark:border-zinc-800 text-center">
+          <p className="text-zinc-700 dark:text-zinc-300 font-medium">Submission not found</p>
           <p className="text-sm text-zinc-500 mt-2">
             This submission does not exist or was filed by another company.
           </p>
         </Card>
       ) : (
         <>
-          <Card className="p-4 bg-zinc-950 border-zinc-800 flex flex-wrap items-center justify-between gap-3">
+          <Card className="p-4 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-sm text-zinc-300">Review status</p>
+              <p className="text-sm text-zinc-700 dark:text-zinc-300">Review status</p>
               <p className="text-xs text-zinc-500 mt-0.5">
                 {result.reviewStatus === "awaiting_review"
                   ? "Automated checks are complete. A TTB specialist still needs to sign off."

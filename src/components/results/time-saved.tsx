@@ -73,7 +73,7 @@ export function TotalTimeSaved({
             Estimated time saved vs manual review
           </p>
           <p className="text-2xl font-bold text-emerald-400">{formatted}</p>
-          <p className="text-sm text-zinc-400 mt-1">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
             Based on a 7-minute manual review baseline
             {labelCount != null && labelCount > 0
               ? ` across ${labelCount} label${labelCount === 1 ? "" : "s"}`
@@ -94,7 +94,7 @@ export function TotalTimeSaved({
 
   return (
     <div className="text-sm">
-      <span className="text-zinc-400">Total estimated time saved: </span>
+      <span className="text-zinc-500 dark:text-zinc-400">Total estimated time saved: </span>
       <span className="text-emerald-400 font-semibold">{formatted}</span>
     </div>
   );

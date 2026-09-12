@@ -171,17 +171,17 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
         : "";
 
   return (
-    <>
+    <div className="flex flex-col gap-6 flex-1 min-h-0">
       {result.submissionSource === "applicant" && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-blue-500/25 bg-blue-500/5 p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-blue-500/25 bg-blue-500/5 p-4 shrink-0">
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-sm font-medium text-zinc-200">
+              <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
                 Submitted through the applicant portal
               </p>
               <ReviewStatusBadge status={result.reviewStatus} />
             </div>
-            <p className="text-xs text-zinc-400 mt-1">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
               {result.submittedByName
                 ? `Filed by ${result.submittedByName} at ${result.companyName}.`
                 : `Filed by ${result.companyName}.`}{" "}
@@ -204,11 +204,11 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 rounded-lg border border-zinc-800 bg-zinc-950 p-4">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 rounded-lg border border-border bg-card p-4 shrink-0">
         <div className="space-y-2 flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-zinc-400" />
-            <Label className="text-sm text-zinc-300">Submitting Company</Label>
+            <Building2 className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+            <Label className="text-sm text-zinc-700 dark:text-zinc-300">Submitting Company</Label>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 w-full">
             <Select
@@ -218,7 +218,7 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
               }}
               disabled={isSavingCompany}
             >
-              <SelectTrigger className="bg-zinc-900 border-zinc-800 w-full min-w-0 sm:min-w-[28rem] sm:max-w-2xl">
+              <SelectTrigger className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 w-full min-w-0 sm:min-w-[28rem] sm:max-w-2xl">
                 <SelectValue placeholder={result.companyName || "Select company"} />
               </SelectTrigger>
               <SelectContent className="min-w-[var(--anchor-width)]">
@@ -248,7 +248,7 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
                   placeholder="New company name"
                   value={newCompanyName}
                   onChange={(e) => setNewCompanyName(e.target.value)}
-                  className="bg-zinc-900 border-zinc-800"
+                  className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
                   disabled={isSavingCompany}
                 />
                 <Button
@@ -276,11 +276,13 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
         </Button>
       </div>
 
-      <VerificationCard
-        result={result}
-        onUpdateNotes={handleUpdateNotes}
-        onOverrideField={setOverrideField}
-      />
+      <div className="lg:flex-1 lg:min-h-0">
+        <VerificationCard
+          result={result}
+          onUpdateNotes={handleUpdateNotes}
+          onOverrideField={setOverrideField}
+        />
+      </div>
 
       {activeField && (
         <OverrideDialog
@@ -300,6 +302,6 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
         isDeleting={isDeleting}
         onConfirm={handleDelete}
       />
-    </>
+    </div>
   );
 }

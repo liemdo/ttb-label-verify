@@ -52,15 +52,15 @@ function SettingsContent() {
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-white">Settings</h1>
-        <p className="text-zinc-400 mt-1">Configure extraction engines and application preferences</p>
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Settings</h1>
+        <p className="text-zinc-500 dark:text-zinc-400 mt-1">Configure extraction engines and application preferences</p>
       </div>
 
       {/* OCR Engine Selection */}
-      <Card className="p-6 bg-zinc-900 border-zinc-800 space-y-6">
+      <Card className="p-6 bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 space-y-6">
         <div>
-          <h2 className="text-lg font-semibold text-zinc-100">OCR Engine</h2>
-          <p className="text-sm text-zinc-400 mt-1">Select the technology used to extract text from labels.</p>
+          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">OCR Engine</h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">Select the technology used to extract text from labels.</p>
         </div>
 
         <RadioGroup 
@@ -73,15 +73,15 @@ function SettingsContent() {
             <RadioGroupItem value="openai" id="openai" className="peer sr-only" />
             <Label
               htmlFor="openai"
-              className="flex flex-col p-4 border-2 rounded-xl cursor-pointer transition-all peer-data-[state=checked]:border-blue-500 peer-data-[state=checked]:bg-blue-500/10 peer-data-[state=unchecked]:border-zinc-800 peer-data-[state=unchecked]:bg-zinc-950 peer-data-[state=unchecked]:hover:border-zinc-700"
+              className="flex flex-col p-4 border-2 rounded-xl cursor-pointer transition-all peer-data-[state=checked]:border-blue-500 peer-data-[state=checked]:bg-blue-500/10 peer-data-[state=unchecked]:border-zinc-200 dark:peer-data-[state=unchecked]:border-zinc-800 peer-data-[state=unchecked]:bg-white dark:peer-data-[state=unchecked]:bg-zinc-950 peer-data-[state=unchecked]:hover:border-zinc-300 dark:peer-data-[state=unchecked]:hover:border-zinc-700"
             >
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 rounded-lg bg-blue-500/20 text-blue-400">
                   <Bot className="h-5 w-5" />
                 </div>
-                <span className="font-semibold text-zinc-200">AI Vision (OpenAI)</span>
+                <span className="font-semibold text-zinc-800 dark:text-zinc-200">AI Vision (OpenAI)</span>
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
                 Uses GPT-4o to analyze images. High accuracy, handles curved text and glare well. Requires API key.
               </p>
             </Label>
@@ -92,15 +92,15 @@ function SettingsContent() {
             <RadioGroupItem value="tesseract" id="tesseract" className="peer sr-only" />
             <Label
               htmlFor="tesseract"
-              className="flex flex-col p-4 border-2 rounded-xl cursor-pointer transition-all peer-data-[state=checked]:border-amber-500 peer-data-[state=checked]:bg-amber-500/10 peer-data-[state=unchecked]:border-zinc-800 peer-data-[state=unchecked]:bg-zinc-950 peer-data-[state=unchecked]:hover:border-zinc-700"
+              className="flex flex-col p-4 border-2 rounded-xl cursor-pointer transition-all peer-data-[state=checked]:border-amber-500 peer-data-[state=checked]:bg-amber-500/10 peer-data-[state=unchecked]:border-zinc-200 dark:peer-data-[state=unchecked]:border-zinc-800 peer-data-[state=unchecked]:bg-white dark:peer-data-[state=unchecked]:bg-zinc-950 peer-data-[state=unchecked]:hover:border-zinc-300 dark:peer-data-[state=unchecked]:hover:border-zinc-700"
             >
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400">
                   <Cpu className="h-5 w-5" />
                 </div>
-                <span className="font-semibold text-zinc-200">Offline OCR (Tesseract)</span>
+                <span className="font-semibold text-zinc-800 dark:text-zinc-200">Offline OCR (Tesseract)</span>
               </div>
-              <p className="text-xs text-zinc-400 leading-relaxed">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
                 Runs entirely in your browser. <strong>Works behind firewalls. No API key needed.</strong> Lower accuracy.
               </p>
             </Label>
@@ -109,11 +109,11 @@ function SettingsContent() {
 
         {/* OpenAI Config */}
         {settings.ocrEngine === "openai" && (
-          <div className="pt-6 border-t border-zinc-800 space-y-4">
-            <h3 className="text-sm font-medium text-zinc-300">OpenAI Configuration</h3>
+          <div className="pt-6 border-t border-zinc-200 dark:border-zinc-800 space-y-4">
+            <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">OpenAI Configuration</h3>
             
             <div className="space-y-2">
-              <Label className="text-xs text-zinc-400">API Key</Label>
+              <Label className="text-xs text-zinc-500 dark:text-zinc-400">API Key</Label>
               <div className="flex gap-3">
                 <div className="relative flex-1">
                   <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
@@ -122,14 +122,14 @@ function SettingsContent() {
                     placeholder="sk-..."
                     value={apiKeyInput}
                     onChange={(e) => setApiKeyInput(e.target.value)}
-                    className="pl-9 bg-zinc-950 border-zinc-800"
+                    className="pl-9 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800"
                   />
                 </div>
                 <Button 
                   onClick={handleTestKey} 
                   disabled={!apiKeyInput || isTesting}
                   variant="outline"
-                  className="bg-zinc-800 border-zinc-700 hover:bg-zinc-700 w-24"
+                  className="bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700 w-24"
                 >
                   {isTesting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Test Key"}
                 </Button>
@@ -163,12 +163,12 @@ function SettingsContent() {
             </div>
 
             <div className="space-y-2 pt-2">
-              <Label className="text-xs text-zinc-400">Model</Label>
+              <Label className="text-xs text-zinc-500 dark:text-zinc-400">Model</Label>
               <Select 
                 value={settings.openaiModel} 
                 onValueChange={(v) => updateSettings({ openaiModel: v as any })}
               >
-                <SelectTrigger className="w-[200px] bg-zinc-950 border-zinc-800">
+                <SelectTrigger className="w-[200px] bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -182,16 +182,16 @@ function SettingsContent() {
       </Card>
 
       {/* Preferences */}
-      <Card className="p-6 bg-zinc-900 border-zinc-800 space-y-4">
-        <h2 className="text-lg font-semibold text-zinc-100 mb-2">Preferences</h2>
+      <Card className="p-6 bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 space-y-4">
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">Preferences</h2>
         
         <div className="space-y-2">
-          <Label className="text-xs text-zinc-400">Default Beverage Type</Label>
+          <Label className="text-xs text-zinc-500 dark:text-zinc-400">Default Beverage Type</Label>
           <Select 
             value={settings.defaultBeverageType} 
             onValueChange={(v) => updateSettings({ defaultBeverageType: v as BeverageType })}
           >
-            <SelectTrigger className="w-[200px] bg-zinc-950 border-zinc-800">
+            <SelectTrigger className="w-[200px] bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

@@ -28,24 +28,24 @@ export function BatchUploadList({
         return (
           <div
             key={`${file.name}-${index}`}
-            className={`flex items-center gap-3 p-3 rounded-lg border bg-zinc-900/50 ${
-              hasWarning ? "border-amber-500/30" : "border-zinc-800"
+            className={`flex items-center gap-3 p-3 rounded-lg border bg-zinc-50 dark:bg-zinc-900/50 ${
+              hasWarning ? "border-amber-500/30" : "border-zinc-200 dark:border-zinc-800"
             }`}
           >
             <div
               className={`h-10 w-10 shrink-0 rounded flex items-center justify-center ${
-                hasWarning ? "bg-amber-500/10" : "bg-zinc-800"
+                hasWarning ? "bg-amber-500/10" : "bg-zinc-100 dark:bg-zinc-800"
               }`}
             >
               <FileImage
                 className={`h-5 w-5 ${
-                  hasWarning ? "text-amber-400" : "text-zinc-400"
+                  hasWarning ? "text-amber-400" : "text-zinc-500 dark:text-zinc-400"
                 }`}
               />
             </div>
             
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-zinc-200 truncate">
+              <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">
                 {file.name}
               </p>
               <div className="flex items-center gap-2 mt-0.5">
@@ -64,7 +64,7 @@ export function BatchUploadList({
             {!disabled && (
               <button
                 onClick={() => onRemove(index)}
-                className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors"
+                className="p-1.5 rounded-md text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
                 title="Remove file"
               >
                 <X className="h-4 w-4" />
