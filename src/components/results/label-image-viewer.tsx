@@ -89,7 +89,7 @@ export function LabelImageViewer({ src, alt = "Analyzed label" }: LabelImageView
 
       <div
         ref={containerRef}
-        className={`relative flex-1 rounded-lg overflow-hidden border border-border bg-background min-h-[360px] lg:min-h-0 select-none ${
+        className={`relative flex-1 rounded-lg overflow-hidden border border-border bg-background min-h-[360px] lg:min-h-[28rem] select-none ${
           zoom > MIN_ZOOM ? "cursor-grab active:cursor-grabbing" : "cursor-default"
         }`}
         onPointerDown={handlePointerDown}

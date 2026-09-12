@@ -36,9 +36,9 @@ export function VerificationCard({
   );
 
   return (
-    <Card className="overflow-hidden border-border bg-card shadow-xl flex flex-col min-h-0 lg:h-full">
+    <Card className="!overflow-visible border-border bg-card shadow-xl">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 border-b border-border bg-muted/40 shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 border-b border-border bg-muted/40 rounded-t-xl">
         <div>
           <div className="flex items-center gap-3 mb-1">
             <ScanSearch className="h-5 w-5 text-zinc-500 dark:text-zinc-400" />
@@ -72,16 +72,18 @@ export function VerificationCard({
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row lg:flex-1 lg:min-h-0">
-        {/* Left column: Image stays at the top while the fields scroll */}
+      <div className="flex flex-col lg:flex-row lg:items-start">
+        {/* Left column stays pinned at the top of the scrollport */}
         {!hideImage && result.imageDataUrl && (
-          <div className="w-full lg:w-3/5 lg:border-r border-border bg-muted/30 p-5 flex flex-col shrink-0 lg:min-h-0">
+          <div className="w-full lg:w-3/5 lg:sticky lg:top-4 lg:self-start lg:h-[calc(100dvh-5.5rem)] border-b lg:border-b-0 lg:border-r border-border bg-muted/30 p-5 flex flex-col">
             <LabelImageViewer src={result.imageDataUrl} />
           </div>
         )}
 
-        {/* Right column: Fields */}
-        <div className={`w-full ${hideImage ? "" : "lg:w-2/5"} p-5 space-y-6 lg:overflow-y-auto lg:min-h-0 custom-scrollbar`}>
+        {/* Right column scrolls independently so the label never moves */}
+        <div
+          className={`w-full ${hideImage ? "" : "lg:w-2/5 lg:sticky lg:top-4 lg:self-start lg:h-[calc(100dvh-5.5rem)] lg:overflow-y-auto custom-scrollbar"} p-5 space-y-6`}
+        >
           <div>
             <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-3">Verification Details</h3>
             <div className="space-y-2">
