@@ -15,7 +15,7 @@ export function KeyboardHints() {
         <Keyboard className="h-3.5 w-3.5" />
         <span>Shortcuts</span>
       </TooltipTrigger>
-      <TooltipContent side="bottom" align="end" className="w-56">
+      <TooltipContent side="top" align="end" className="w-56">
         <div className="space-y-1.5">
           <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Keyboard Shortcuts</p>
           {SHORTCUT_DEFINITIONS.map((s) => (

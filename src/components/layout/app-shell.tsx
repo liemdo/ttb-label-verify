@@ -2,7 +2,6 @@
 
 import { useAuth } from "@/context/auth-context";
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { Header } from "@/components/layout/header";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -11,7 +10,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="flex h-screen overflow-hidden">
       <AppSidebar />
       <div className="flex-1 flex flex-col min-w-0">
-        <Header />
         <main
           className={`flex-1 min-h-0 overflow-y-auto bg-background relative ${
             isAuthenticated ? "ml-64" : ""
