@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { useAuth } from "@/context/auth-context";
 import { fetchResultsByCompanyAction } from "@/actions/results";
@@ -9,6 +10,15 @@ import { ReviewStatusBadge, VerdictBadge } from "@/components/shared/status-badg
 import { LoadingSpinner } from "@/components/shared/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { BEVERAGE_TYPE_LABELS } from "@/lib/constants";
 import type { VerificationResult } from "@/types";
 import { FileImage, Upload } from "lucide-react";
 
@@ -20,7 +30,13 @@ export default function PortalPage() {
   );
 }
 
+function brandFor(submission: VerificationResult): string {
+  const field = submission.fields.find((f) => f.fieldName === "brandName");
+  return field?.expectedValue?.trim() || field?.extractedValue?.trim() || "—";
+}
+
 function PortalContent() {
+  const router = useRouter();
   const { applicant } = useAuth();
   const [submissions, setSubmissions] = useState<VerificationResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,7 +59,7 @@ function PortalContent() {
   ).length;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
+    <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">My Submissions</h1>
@@ -83,44 +99,60 @@ function PortalContent() {
           </Link>
         </Card>
       ) : (
-        <div className="space-y-2">
-          {submissions.map((submission) => (
-            <Link
-              key={submission.id}
-              href={`/portal/${submission.id}`}
-              className="block border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-950 p-4 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors group"
-            >
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4 min-w-0">
-                  <div className="h-12 w-12 rounded bg-zinc-100 dark:bg-zinc-800 overflow-hidden shrink-0 border border-zinc-200 dark:border-zinc-700/50">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={submission.imageDataUrl}
-                      alt=""
-                      className="h-full w-full object-cover group-hover:scale-105 transition-transform"
-                    />
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-base font-medium text-zinc-900 dark:text-zinc-100 truncate">
-                      {submission.fileName}
-                    </h3>
-                    <p className="text-sm text-zinc-500 mt-0.5">
-                      <span className="capitalize">{submission.beverageType}</span>
-                      {" • "}
-                      {new Date(submission.timestamp).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className="hidden sm:block">
+        <Card className="py-0 overflow-hidden border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="pl-4 w-[72px]">Label</TableHead>
+                <TableHead>Brand</TableHead>
+                <TableHead>Beverage type</TableHead>
+                <TableHead>Result</TableHead>
+                <TableHead>Specialist</TableHead>
+                <TableHead>Date submitted</TableHead>
+                <TableHead>File</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {submissions.map((submission) => (
+                <TableRow
+                  key={submission.id}
+                  className="cursor-pointer"
+                  onClick={() => router.push(`/portal/${submission.id}`)}
+                >
+                  <TableCell className="pl-4">
+                    <div className="h-10 w-10 rounded bg-zinc-100 dark:bg-zinc-800 overflow-hidden border border-zinc-200 dark:border-zinc-700/50">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={submission.imageDataUrl}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-medium text-zinc-900 dark:text-zinc-100 max-w-[14rem] truncate">
+                    {brandFor(submission)}
+                  </TableCell>
+                  <TableCell className="text-zinc-600 dark:text-zinc-400">
+                    {BEVERAGE_TYPE_LABELS[submission.beverageType] ??
+                      submission.beverageType}
+                  </TableCell>
+                  <TableCell>
+                    <VerdictBadge verdict={submission.overallVerdict} />
+                  </TableCell>
+                  <TableCell>
                     <ReviewStatusBadge status={submission.reviewStatus} />
-                  </div>
-                  <VerdictBadge verdict={submission.overallVerdict} />
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+                  </TableCell>
+                  <TableCell className="text-zinc-600 dark:text-zinc-400">
+                    {new Date(submission.timestamp).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className="text-zinc-500 max-w-[12rem] truncate">
+                    {submission.fileName}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
       )}
     </div>
   );
