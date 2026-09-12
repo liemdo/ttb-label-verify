@@ -2,7 +2,6 @@
 
 import { useAuth } from "@/context/auth-context";
 import { KeyboardHints } from "@/components/shared/keyboard-hints";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 export function Header() {
   const { isAuthenticated, isSpecialist } = useAuth();
@@ -15,7 +14,6 @@ export function Header() {
       <div className="flex items-center gap-3">
         {/* Shortcuts only apply to the specialist review workflow */}
         {isSpecialist && <KeyboardHints />}
-        <ThemeToggle />
       </div>
     </header>
   );

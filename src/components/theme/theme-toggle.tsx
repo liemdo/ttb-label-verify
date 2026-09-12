@@ -35,7 +35,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       ) : (
         <Moon className="h-4 w-4" />
       )}
-      <span className="text-xs hidden sm:inline">
+      <span className="text-xs">
         {mounted && isDark ? "Light" : "Dark"}
       </span>
     </Button>

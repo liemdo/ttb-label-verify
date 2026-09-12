@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { useSettings } from "@/context/settings-context";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import {
   LayoutDashboard,
   ScanSearch,
@@ -114,7 +115,8 @@ export function AppSidebar() {
       </nav>
 
       {/* Profile */}
-      <div className="px-3 py-4 border-t border-zinc-200 dark:border-zinc-800">
+      <div className="px-3 py-4 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
+        <ThemeToggle className="w-full justify-start" />
         <div className="flex items-center gap-3 px-2">
           <Avatar className="h-8 w-8 border border-zinc-300 dark:border-zinc-700">
             <AvatarFallback
