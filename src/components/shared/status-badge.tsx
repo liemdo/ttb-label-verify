@@ -1,6 +1,8 @@
 "use client";
 
-import type { ReviewStatus, VerificationStatus } from "@/types";
+import type { ApplicationStatus, VerificationStatus } from "@/types";
+import { applicationReviewerName, applicationStatus } from "@/lib/application-status";
+import type { VerificationResult } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, AlertTriangle, MinusCircle, PenLine, Clock } from "lucide-react";
 
@@ -30,7 +32,7 @@ const statusConfig: Record<
     label: "Not Checked",
     variant: "outline",
     icon: <MinusCircle className="h-3 w-3" />,
-    className: "bg-zinc-500/20 text-zinc-500 dark:text-zinc-400 border-zinc-500/30 hover:bg-zinc-500/30",
+    className: "bg-muted text-muted-foreground border-border hover:bg-muted/80",
   },
 };
 
@@ -55,11 +57,17 @@ export function StatusBadge({ status, overridden, size = "md" }: StatusBadgeProp
 }
 
 interface VerdictBadgeProps {
-  verdict: "approved" | "rejected" | "needs_review";
+  verdict: ApplicationStatus | "needs_review";
 }
 
 export function VerdictBadge({ verdict }: VerdictBadgeProps) {
+  const status: ApplicationStatus = verdict === "needs_review" ? "pending" : verdict;
   const config = {
+    pending: {
+      label: "Pending review",
+      className: "bg-primary/15 text-primary border-primary/40",
+      icon: <Clock className="h-4 w-4" />,
+    },
     approved: {
       label: "Approved",
       className: "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/40",
@@ -70,14 +78,9 @@ export function VerdictBadge({ verdict }: VerdictBadgeProps) {
       className: "bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/40",
       icon: <XCircle className="h-4 w-4" />,
     },
-    needs_review: {
-      label: "Needs Review",
-      className: "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40",
-      icon: <AlertTriangle className="h-4 w-4" />,
-    },
   };
 
-  const c = config[verdict];
+  const c = config[status];
   return (
     <Badge variant="outline" className={`${c.className} text-sm px-3 py-1 inline-flex items-center gap-1.5 font-semibold`}>
       {c.icon}
@@ -86,30 +89,28 @@ export function VerdictBadge({ verdict }: VerdictBadgeProps) {
   );
 }
 
-interface ReviewStatusBadgeProps {
-  status: ReviewStatus;
+export function ApplicationStatusBadge({
+  result,
+}: {
+  result: Pick<VerificationResult, "overallVerdict" | "reviewStatus">;
+}) {
+  return <VerdictBadge verdict={applicationStatus(result)} />;
 }
 
-export function ReviewStatusBadge({ status }: ReviewStatusBadgeProps) {
-  if (status === "reviewed") {
-    return (
-      <Badge
-        variant="outline"
-        className="bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 border-zinc-500/30 text-xs px-2 py-0.5 inline-flex items-center gap-1 font-medium"
-      >
-        <CheckCircle2 className="h-3 w-3" />
-        Specialist reviewed
-      </Badge>
-    );
-  }
+export function ApprovedByLine({
+  result,
+  className = "",
+}: {
+  result: Pick<VerificationResult, "overallVerdict" | "reviewStatus" | "agentName">;
+  className?: string;
+}) {
+  if (applicationStatus(result) !== "approved") return null;
+  const name = applicationReviewerName(result.agentName);
+  if (!name) return null;
 
   return (
-    <Badge
-      variant="outline"
-      className="bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/40 text-xs px-2 py-0.5 inline-flex items-center gap-1 font-medium"
-    >
-      <Clock className="h-3 w-3" />
-        Awaiting specialist
-    </Badge>
+    <p className={`text-xs text-muted-foreground ${className}`.trim()}>
+      Approved by <span className="font-medium text-foreground">{name}</span>
+    </p>
   );
 }

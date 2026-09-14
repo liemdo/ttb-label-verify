@@ -31,20 +31,20 @@ export function ConfirmDeleteDialog({
 }: ConfirmDeleteDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 sm:max-w-md">
+      <DialogContent className="bg-muted border-border sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-zinc-900 dark:text-zinc-100">{title}</DialogTitle>
-          <DialogDescription className="text-zinc-500 dark:text-zinc-400">
+          <DialogTitle className="text-foreground">{title}</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             {description}
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+        <DialogFooter className="border-border bg-muted/50">
           <Button
             type="button"
             variant="ghost"
             onClick={() => onOpenChange(false)}
             disabled={isDeleting}
-            className="text-zinc-500 dark:text-zinc-400"
+            className="text-muted-foreground"
           >
             Cancel
           </Button>

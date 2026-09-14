@@ -84,13 +84,16 @@ async function seed() {
     
     // Simulate varied verdicts
     const rand = Math.random();
-    const verdict = rand > 0.8 ? "rejected" : rand > 0.5 ? "needs_review" : "approved";
+    const viaPortal = i % 3 === 0;
+    const verdict =
+      viaPortal || rand > 0.5
+        ? "pending"
+        : rand > 0.25
+          ? "rejected"
+          : "approved";
     
     const base64Img = getBase64Image(beverageType);
 
-    // Roughly a third of the queue arrives through the applicant portal and
-    // still needs a specialist to sign off.
-    const viaPortal = i % 3 === 0;
     const portalContact = PORTAL_CONTACTS[company];
 
     resultsToInsert.push({
@@ -103,14 +106,14 @@ async function seed() {
       fields: [], // Dummy empty fields for seed data to keep it light
       ocrEngine: "openai",
       processingTimeMs: Math.floor(Math.random() * 2000) + 500,
-      agentId: viaPortal ? "unassigned" : agent.id,
-      agentName: viaPortal ? "Unassigned" : agent.name,
+      agentId: verdict === "pending" ? "unassigned" : agent.id,
+      agentName: verdict === "pending" ? "Unassigned" : agent.name,
       timestamp: new Date(Date.now() - Math.floor(Math.random() * 7 * 24 * 60 * 60 * 1000)), // Random date in last 7 days
       agentNotes: verdict === "rejected" ? "Missing government warning" : null,
       timeSavedMs: Math.floor(Math.random() * 50000) + 10000,
       submissionSource: viaPortal ? "applicant" : "specialist",
       submittedByName: viaPortal ? (portalContact ?? "Compliance Contact") : null,
-      reviewStatus: viaPortal ? "awaiting_review" : "reviewed",
+      reviewStatus: verdict === "pending" ? "awaiting_review" : "reviewed",
     });
   }
 

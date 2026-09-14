@@ -11,6 +11,7 @@ export const verificationResults = pgTable("verification_results", {
   id: text("id").primaryKey(),
   fileName: text("file_name").notNull(),
   companyName: text("company_name").notNull(),
+  // Private Blob URL; older seed/demo rows may still store a data: URL
   imageDataUrl: text("image_data_url").notNull(),
   beverageType: text("beverage_type").notNull(),
   overallVerdict: text("overall_verdict").notNull(),

@@ -16,7 +16,7 @@ export function FilePreview({ file, onClear, disabled }: FilePreviewProps) {
 
   return (
     <>
-      <div className="relative group rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+      <div className="relative group rounded-xl overflow-hidden border border-border bg-muted/50">
         <div className="aspect-[4/3] w-full flex items-center justify-center p-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -30,7 +30,7 @@ export function FilePreview({ file, onClear, disabled }: FilePreviewProps) {
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
           <button
             onClick={() => setIsFullscreen(true)}
-            className="p-2 rounded-full bg-zinc-50 dark:bg-zinc-900/80 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors backdrop-blur-sm"
+            className="p-2 rounded-full bg-card/80 text-foreground hover:bg-accent transition-colors backdrop-blur-sm"
             title="Zoom image"
           >
             <ZoomIn className="h-5 w-5" />
@@ -47,11 +47,11 @@ export function FilePreview({ file, onClear, disabled }: FilePreviewProps) {
         </div>
         
         {/* File info footer */}
-        <div className="absolute bottom-0 left-0 right-0 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md p-2.5 border-t border-zinc-200 dark:border-zinc-800/50 flex items-center justify-between">
-          <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300 truncate pr-4">
+        <div className="absolute bottom-0 left-0 right-0 bg-card/80 backdrop-blur-md p-2.5 border-t border-border/50 flex items-center justify-between">
+          <span className="text-xs font-medium text-foreground truncate pr-4">
             {file.name}
           </span>
-          <span className="text-[10px] text-zinc-500 shrink-0">
+          <span className="text-[10px] text-muted-foreground shrink-0">
             {(file.size / (1024 * 1024)).toFixed(1)} MB
           </span>
         </div>
@@ -64,7 +64,7 @@ export function FilePreview({ file, onClear, disabled }: FilePreviewProps) {
           <div className="flex justify-end p-4">
             <button
               onClick={() => setIsFullscreen(false)}
-              className="p-2 rounded-full bg-zinc-50 dark:bg-zinc-900/80 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors backdrop-blur-sm border border-zinc-300 dark:border-zinc-700"
+              className="p-2 rounded-full bg-card/80 text-foreground hover:bg-accent transition-colors backdrop-blur-sm border border-border"
             >
               <X className="h-5 w-5" />
             </button>

@@ -8,8 +8,10 @@ import type {
   LabelField,
   ReviewStatus,
   SubmissionSource,
+  ApplicationStatus,
 } from "@/types";
 import { revalidatePath } from "next/cache";
+import { deleteStoredLabelImage, deleteStoredLabelImages } from "@/lib/blob-storage";
 
 type ResultRow = typeof verificationResults.$inferSelect;
 
@@ -141,26 +143,26 @@ export async function updateNotesAction(id: string, notes: string): Promise<void
   revalidateResultViews(id);
 }
 
-export async function updateFieldsAction(id: string, fields: LabelField[], overallVerdict: string): Promise<void> {
+export async function updateFieldsAction(id: string, fields: LabelField[]): Promise<void> {
   await db.update(verificationResults)
-    .set({ fields, overallVerdict })
+    .set({ fields })
     .where(eq(verificationResults.id, id));
   revalidateResultViews(id);
 }
 
-/** Records that a specialist has signed off on (or reopened) an AI result. */
-export async function updateReviewStatusAction(
+/** A specialist decides the application's one status: approved or rejected. */
+export async function decideApplicationAction(
   id: string,
-  reviewStatus: ReviewStatus,
-  reviewer?: { agentId: string; agentName: string }
+  decision: Exclude<ApplicationStatus, "pending">,
+  reviewer: { agentId: string; agentName: string }
 ): Promise<void> {
   await db
     .update(verificationResults)
     .set({
-      reviewStatus,
-      ...(reviewer && reviewStatus === "reviewed"
-        ? { agentId: reviewer.agentId, agentName: reviewer.agentName }
-        : {}),
+      overallVerdict: decision,
+      reviewStatus: "reviewed",
+      agentId: reviewer.agentId,
+      agentName: reviewer.agentName,
     })
     .where(eq(verificationResults.id, id));
 
@@ -169,7 +171,14 @@ export async function updateReviewStatusAction(
 
 export async function deleteResultAction(id: string): Promise<void> {
   try {
+    const [row] = await db
+      .select({ imageDataUrl: verificationResults.imageDataUrl })
+      .from(verificationResults)
+      .where(eq(verificationResults.id, id))
+      .limit(1);
+
     await db.delete(verificationResults).where(eq(verificationResults.id, id));
+    await deleteStoredLabelImage(row?.imageDataUrl);
     revalidateResultViews();
   } catch (error) {
     console.error("Failed to delete result:", error);
@@ -195,6 +204,11 @@ export async function updateCompanyNameAction(
 }
 
 export async function clearResultsAction(): Promise<void> {
+  const rows = await db
+    .select({ imageDataUrl: verificationResults.imageDataUrl })
+    .from(verificationResults);
+
   await db.delete(verificationResults);
+  await deleteStoredLabelImages(rows.map((row) => row.imageDataUrl));
   revalidateResultViews();
 }

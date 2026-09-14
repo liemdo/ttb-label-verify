@@ -23,20 +23,20 @@ function GuidelinesContent() {
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">TTB Label Requirements</h1>
-        <p className="text-zinc-500 dark:text-zinc-400 mt-1">Official guidelines and formatting rules for alcohol beverage labels</p>
+        <h1 className="text-2xl font-bold text-foreground">TTB Label Requirements</h1>
+        <p className="text-muted-foreground mt-1">Official guidelines and formatting rules for alcohol beverage labels</p>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800">
+      <div className="flex items-center gap-2 border-b border-border">
         {Object.values(TTB_GUIDELINES).map((g) => (
           <button
             key={g.beverageType}
             onClick={() => setActiveTab(g.beverageType)}
             className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
               activeTab === g.beverageType
-                ? "border-blue-500 text-blue-400"
-                : "border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             {g.displayName}
@@ -47,13 +47,13 @@ function GuidelinesContent() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2 space-y-6">
           {/* Main Info */}
-          <Card className="p-5 bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
+          <Card className="p-5 bg-muted border-border">
             <div className="flex items-start gap-3">
               <Info className="h-5 w-5 text-blue-400 shrink-0 mt-0.5" />
               <div>
-                <h3 className="text-base font-semibold text-zinc-800 dark:text-zinc-200">{activeGuideline.displayName} Requirements</h3>
-                <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">{activeGuideline.description}</p>
-                <Badge variant="outline" className="mt-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-300 dark:border-zinc-700">
+                <h3 className="text-base font-semibold text-foreground">{activeGuideline.displayName} Requirements</h3>
+                <p className="text-sm text-muted-foreground mt-1">{activeGuideline.description}</p>
+                <Badge variant="outline" className="mt-3 bg-muted text-foreground border-border">
                   {activeGuideline.regulation}
                 </Badge>
               </div>
@@ -62,16 +62,16 @@ function GuidelinesContent() {
 
           {/* Required Fields */}
           <div>
-            <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
               <CheckCircle2 className="h-5 w-5 text-emerald-400" />
               Mandatory Information
             </h3>
             <div className="space-y-3">
               {activeGuideline.requiredFields.map((field) => (
-                <Card key={field.field} className="p-4 bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
+                <Card key={field.field} className="p-4 bg-muted/50 border-border">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-zinc-800 dark:text-zinc-200">{field.displayName}</span>
+                      <span className="font-medium text-foreground">{field.displayName}</span>
                       {field.required && !field.onlyIf && (
                         <Badge variant="outline" className="text-[10px] uppercase bg-emerald-500/10 text-emerald-400 border-emerald-500/20">Required</Badge>
                       )}
@@ -82,7 +82,7 @@ function GuidelinesContent() {
                       )}
                     </div>
                   </div>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">{field.notes}</p>
+                  <p className="text-sm text-muted-foreground">{field.notes}</p>
                 </Card>
               ))}
             </div>
@@ -91,18 +91,18 @@ function GuidelinesContent() {
 
         <div className="space-y-6">
           {/* Gov Warning Reference */}
-          <Card className="p-5 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 relative overflow-hidden">
+          <Card className="p-5 bg-card border-border relative overflow-hidden">
             <div className="absolute top-0 left-0 w-1 h-full bg-red-500" />
-            <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200 mb-3 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-red-400" />
               Health Warning
             </h3>
-            <div className="p-3 bg-zinc-50 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-800 mb-3">
-              <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed font-serif">
+            <div className="p-3 bg-muted rounded border border-border mb-3">
+              <p className="text-xs text-foreground leading-relaxed font-serif">
                 <strong className="font-bold">GOVERNMENT WARNING:</strong> (1) According to the Surgeon General, women should not drink alcoholic beverages during pregnancy because of the risk of birth defects. (2) Consumption of alcoholic beverages impairs your ability to drive a car or operate machinery, and may cause health problems.
               </p>
             </div>
-            <ul className="text-xs text-zinc-500 dark:text-zinc-400 space-y-1.5 list-disc list-inside">
+            <ul className="text-xs text-muted-foreground space-y-1.5 list-disc list-inside">
               <li>Must be exactly as shown above</li>
               <li>"GOVERNMENT WARNING:" must be all caps and bold</li>
               <li>Must appear on a contrasting background</li>
@@ -110,16 +110,16 @@ function GuidelinesContent() {
           </Card>
 
           {/* Formatting Rules */}
-          <Card className="p-5 bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
-            <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mb-4 flex items-center gap-2">
-              <FileText className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+          <Card className="p-5 bg-muted border-border">
+            <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+              <FileText className="h-4 w-4 text-muted-foreground" />
               Formatting Rules
             </h3>
             <div className="space-y-4">
               {activeGuideline.formattingRules.map((rule, i) => (
                 <div key={i}>
-                  <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{rule.rule}</p>
-                  <p className="text-xs text-zinc-500 mt-1">{rule.description}</p>
+                  <p className="text-sm font-medium text-foreground">{rule.rule}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{rule.description}</p>
                 </div>
               ))}
             </div>
@@ -130,7 +130,7 @@ function GuidelinesContent() {
             <h3 className="text-sm font-semibold text-red-400 mb-3">Common Rejection Reasons</h3>
             <ul className="space-y-2">
               {activeGuideline.commonRejections.map((reason, i) => (
-                <li key={i} className="text-xs text-zinc-500 dark:text-zinc-400 flex items-start gap-2">
+                <li key={i} className="text-xs text-muted-foreground flex items-start gap-2">
                   <span className="text-red-500/50 mt-0.5">•</span>
                   {reason}
                 </li>

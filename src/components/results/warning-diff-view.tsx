@@ -15,12 +15,12 @@ export function WarningDiffView({ extractedWarning }: WarningDiffViewProps) {
         <p className="text-sm font-medium text-red-400 mb-2">
           Government Warning Not Found
         </p>
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-muted-foreground">
           The mandatory government warning statement was not detected on this label.
         </p>
-        <div className="mt-3 p-3 bg-zinc-50 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-800">
-          <p className="text-xs text-zinc-500 mb-1">Required text:</p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+        <div className="mt-3 p-3 bg-muted rounded border border-border">
+          <p className="text-xs text-muted-foreground mb-1">Required text:</p>
+          <p className="text-xs text-muted-foreground leading-relaxed">
             {GOVERNMENT_WARNING_TEXT}
           </p>
         </div>
@@ -47,7 +47,7 @@ export function WarningDiffView({ extractedWarning }: WarningDiffViewProps) {
 
       {!isExactMatch && (
         <>
-          <div className="flex gap-4 text-[10px] text-zinc-500 mb-2">
+          <div className="flex gap-4 text-[10px] text-muted-foreground mb-2">
             <span className="flex items-center gap-1">
               <span className="inline-block w-3 h-3 rounded bg-red-500/30 border border-red-500/50" />
               Expected (missing)
@@ -58,7 +58,7 @@ export function WarningDiffView({ extractedWarning }: WarningDiffViewProps) {
             </span>
           </div>
 
-          <div className="p-3 bg-zinc-50 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-800 text-sm leading-relaxed">
+          <div className="p-3 bg-muted rounded border border-border text-sm leading-relaxed">
             {segments.map((seg: DiffSegment, i: number) => (
               <span
                 key={i}
@@ -67,7 +67,7 @@ export function WarningDiffView({ extractedWarning }: WarningDiffViewProps) {
                     ? "bg-red-500/20 text-red-300 line-through"
                     : seg.type === "added"
                     ? "bg-emerald-500/20 text-emerald-300"
-                    : "text-zinc-700 dark:text-zinc-300"
+                    : "text-foreground"
                 }
               >
                 {seg.text}
@@ -78,7 +78,7 @@ export function WarningDiffView({ extractedWarning }: WarningDiffViewProps) {
       )}
 
       {isExactMatch && (
-        <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed p-3 bg-zinc-50 dark:bg-zinc-900 rounded border border-zinc-200 dark:border-zinc-800">
+        <p className="text-xs text-muted-foreground leading-relaxed p-3 bg-muted rounded border border-border">
           {GOVERNMENT_WARNING_TEXT}
         </p>
       )}

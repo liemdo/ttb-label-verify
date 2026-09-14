@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import type { VerificationResult } from "@/types";
-import { ReviewStatusBadge, VerdictBadge } from "@/components/shared/status-badge";
+import { ApplicationStatusBadge, ApprovedByLine } from "@/components/shared/status-badge";
 import { TimeSaved } from "@/components/results/time-saved";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ interface VerificationCardProps {
   onOverrideField?: (fieldName: string) => void;
   onUpdateNotes?: (notes: string) => void;
   hideImage?: boolean;
+  reviewFooter?: ReactNode;
 }
 
 export function VerificationCard({
@@ -24,6 +25,7 @@ export function VerificationCard({
   onOverrideField,
   onUpdateNotes,
   hideImage = false,
+  reviewFooter,
 }: VerificationCardProps) {
   const govWarningField = useMemo(
     () => result.fields.find((f) => f.fieldName === "governmentWarning"),
@@ -61,24 +63,17 @@ export function VerificationCard({
   }, []);
 
   return (
-    <Card className="h-full min-h-0 overflow-hidden border-border bg-card shadow-xl py-0 gap-0">
+    <Card className="flex h-full min-h-0 flex-1 flex-col overflow-hidden border border-border bg-card shadow-xl py-0 gap-0 ring-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 border-b border-border bg-muted/40 shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 border-b border-border bg-muted/40 shrink-0 rounded-t-[calc(var(--radius-xl)-1px)]">
         <div>
           <div className="flex items-center gap-3 mb-1">
-            <ScanSearch className="h-5 w-5 text-zinc-500 dark:text-zinc-400" />
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 truncate max-w-[200px] sm:max-w-[300px]">
-                {result.fileName}
-              </h2>
-              {result.companyName && (
-                <span className="hidden sm:inline-flex px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 text-xs border border-indigo-500/20 whitespace-nowrap">
-                  {result.companyName}
-                </span>
-              )}
-            </div>
+            <ScanSearch className="h-5 w-5 text-muted-foreground" />
+            <h2 className="text-lg font-semibold text-foreground truncate max-w-[200px] sm:max-w-[300px]">
+              {result.fileName}
+            </h2>
           </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-zinc-500">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
             <span className="capitalize">{result.beverageType}</span>
             <span>•</span>
             <span className="capitalize">Engine: {result.ocrEngine}</span>
@@ -92,81 +87,85 @@ export function VerificationCard({
             />
           </div>
         </div>
-        <div className="shrink-0 flex flex-wrap items-center justify-end gap-2">
-          {result.submissionSource === "applicant" && (
-            <ReviewStatusBadge status={result.reviewStatus} />
-          )}
-          <VerdictBadge verdict={result.overallVerdict} />
+        <div className="shrink-0 flex flex-col items-start sm:items-end gap-1.5">
+          <ApplicationStatusBadge result={result} />
+          <ApprovedByLine result={result} />
         </div>
       </div>
 
       <div className="flex flex-col lg:flex-row flex-1 min-h-0">
         {!hideImage && result.imageDataUrl && (
           <div className="w-full lg:w-3/5 border-b lg:border-b-0 lg:border-r border-border bg-muted/30 p-5 flex flex-col min-h-[360px] lg:min-h-0 overflow-hidden">
-            <LabelImageViewer src={result.imageDataUrl} />
+            <LabelImageViewer src={result.imageDataUrl} fill />
           </div>
         )}
 
-        <div
-          ref={detailsRef}
-          className={`w-full ${hideImage ? "" : "lg:w-2/5"} p-5 space-y-6 min-h-0 overflow-y-auto overscroll-contain custom-scrollbar`}
-        >
-          <div>
-            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-3">Verification Details</h3>
-            <div className="space-y-2">
-              {otherFields.map((field) => (
-                <FieldCheckRow
-                  key={field.fieldName}
-                  field={field}
-                  onOverride={onOverrideField ? () => onOverrideField(field.fieldName) : undefined}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Special Gov Warning Section */}
-          {govWarningField && (
+        <div className={`w-full ${hideImage ? "" : "lg:w-2/5"} min-h-0 flex flex-col`}>
+          <div
+            ref={detailsRef}
+            className="p-5 space-y-6 min-h-0 flex-1 overflow-y-auto overscroll-contain custom-scrollbar"
+          >
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Government Warning Check</h3>
-                {onOverrideField && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onOverrideField("governmentWarning")}
-                    className="h-7 gap-1.5 px-2 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-                    title="Override result"
-                  >
-                    <PenLine className="h-3.5 w-3.5" />
-                    <span className="text-xs">Override</span>
-                  </Button>
+              <h3 className="text-sm font-medium text-muted-foreground mb-3">Verification Details</h3>
+              <div className="space-y-2">
+                {otherFields.map((field) => (
+                  <FieldCheckRow
+                    key={field.fieldName}
+                    field={field}
+                    onOverride={onOverrideField ? () => onOverrideField(field.fieldName) : undefined}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {govWarningField && (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-muted-foreground">Government Warning Check</h3>
+                  {onOverrideField && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onOverrideField("governmentWarning")}
+                      className="h-7 gap-1.5 px-2 text-muted-foreground hover:text-foreground"
+                      title="Override result"
+                    >
+                      <PenLine className="h-3.5 w-3.5" />
+                      <span className="text-xs">Override</span>
+                    </Button>
+                  )}
+                </div>
+                <WarningDiffView extractedWarning={govWarningField.extractedValue} />
+                {govWarningField.override && (
+                  <p className="text-xs text-primary mt-2">
+                    Overridden by {govWarningField.override.agentName}
+                    {govWarningField.override.reason
+                      ? `: "${govWarningField.override.reason}"`
+                      : ""}
+                  </p>
                 )}
               </div>
-              <WarningDiffView extractedWarning={govWarningField.extractedValue} />
-              {govWarningField.override && (
-                <p className="text-xs text-indigo-400 mt-2">
-                  Overridden by {govWarningField.override.agentName}
-                  {govWarningField.override.reason
-                    ? `: "${govWarningField.override.reason}"`
-                    : ""}
-                </p>
-              )}
-            </div>
-          )}
+            )}
 
-          {/* Agent Notes */}
-          {onUpdateNotes && (
-            <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
-              <AgentNotes notes={result.agentNotes} onSave={onUpdateNotes} />
-            </div>
-          )}
-          
-          {!onUpdateNotes && result.agentNotes && (
-            <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
-              <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Agent Notes</h3>
-              <p className="text-sm text-zinc-700 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-900/50 p-3 rounded border border-zinc-200 dark:border-zinc-800 whitespace-pre-wrap">
-                {result.agentNotes}
-              </p>
+            {onUpdateNotes && (
+              <div className="pt-4 border-t border-border">
+                <AgentNotes notes={result.agentNotes} onSave={onUpdateNotes} />
+              </div>
+            )}
+
+            {!onUpdateNotes && result.agentNotes && (
+              <div className="pt-4 border-t border-border">
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Agent Notes</h3>
+                <p className="text-sm text-foreground bg-muted/50 p-3 rounded border border-border whitespace-pre-wrap">
+                  {result.agentNotes}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {reviewFooter && (
+            <div className="shrink-0 border-t border-border bg-card p-4">
+              {reviewFooter}
             </div>
           )}
         </div>

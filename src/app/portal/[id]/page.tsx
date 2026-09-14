@@ -6,7 +6,7 @@ import { AuthGuard } from "@/components/auth/auth-guard";
 import { useAuth } from "@/context/auth-context";
 import { fetchResultByIdAction } from "@/actions/results";
 import { VerificationCard } from "@/components/results/verification-card";
-import { LoadingSpinner } from "@/components/shared/loading-spinner";
+import { PageLoading } from "@/components/shared/page-loading";
 import { Card } from "@/components/ui/card";
 import type { VerificationResult } from "@/types";
 import { ChevronLeft } from "lucide-react";
@@ -49,31 +49,29 @@ function SubmissionDetail({ id }: { id: string }) {
       <div className="flex items-center gap-4 shrink-0">
         <Link
           href="/portal"
-          className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950"
+          className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors border border-border bg-card"
         >
           <ChevronLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">Submission Details</h1>
-          <p className="text-zinc-500 dark:text-zinc-400 mt-1">
+          <h1 className="text-2xl font-bold text-foreground">Submission Details</h1>
+          <p className="text-muted-foreground mt-1">
             {result ? result.fileName : "Loading your submission..."}
           </p>
         </div>
       </div>
 
       {isLoading ? (
-        <Card className="p-12 bg-zinc-50 dark:bg-zinc-900/20 border-zinc-200 dark:border-zinc-800">
-          <LoadingSpinner message="Loading submission..." />
-        </Card>
+        <PageLoading message="Loading submission..." />
       ) : !isOwnSubmission ? (
-        <Card className="p-12 bg-zinc-50 dark:bg-zinc-900/20 border-zinc-200 dark:border-zinc-800 text-center">
-          <p className="text-zinc-700 dark:text-zinc-300 font-medium">Submission not found</p>
-          <p className="text-sm text-zinc-500 mt-2">
+        <Card className="p-12 bg-muted/20 border-border text-center">
+          <p className="text-foreground font-medium">Submission not found</p>
+          <p className="text-sm text-muted-foreground mt-2">
             This submission does not exist or was filed by another company.
           </p>
         </Card>
       ) : (
-        <div className="flex-1 min-h-0">
+        <div className="flex min-h-0 flex-1 flex-col">
           <VerificationCard result={result} />
         </div>
       )}

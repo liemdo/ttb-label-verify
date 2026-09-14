@@ -1,38 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { VerificationCard } from "@/components/results/verification-card";
 import { OverrideDialog } from "@/components/results/override-dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   updateNotesAction,
   updateFieldsAction,
-  updateCompanyNameAction,
-  updateReviewStatusAction,
+  decideApplicationAction,
 } from "@/actions/results";
-import {
-  ensureCompanyAction,
-  fetchCompaniesAction,
-  type Company,
-} from "@/actions/companies";
 import { useResults } from "@/context/results-context";
 import { useAuth } from "@/context/auth-context";
 import { ConfirmDeleteDialog } from "@/components/shared/confirm-delete-dialog";
-import { ReviewStatusBadge } from "@/components/shared/status-badge";
-import type { FieldOverride, VerificationResult } from "@/types";
-import { Building2, CheckCircle2, Plus, Trash2 } from "lucide-react";
-
-const NEW_COMPANY_VALUE = "__new__";
+import { CompanyInfoDialog } from "@/components/results/company-info-dialog";
+import { isPending, unresolvedReviewFields } from "@/lib/application-status";
+import type { ApplicationStatus, FieldOverride, VerificationResult } from "@/types";
+import { Building2, CheckCircle2, Trash2, XCircle } from "lucide-react";
 
 export function AnalystView({ initialResult }: { initialResult: VerificationResult }) {
   const router = useRouter();
@@ -40,17 +24,9 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
   const { deleteResult } = useResults();
   const [result, setResult] = useState(initialResult);
   const [overrideField, setOverrideField] = useState<string | null>(null);
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [isNewCompany, setIsNewCompany] = useState(false);
-  const [newCompanyName, setNewCompanyName] = useState("");
-  const [isSavingCompany, setIsSavingCompany] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isSigningOff, setIsSigningOff] = useState(false);
-
-  useEffect(() => {
-    fetchCompaniesAction().then(setCompanies).catch(console.error);
-  }, []);
+  const [isDeciding, setIsDeciding] = useState<Exclude<ApplicationStatus, "pending"> | null>(null);
 
   const handleUpdateNotes = async (notes: string) => {
     try {
@@ -69,18 +45,11 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
       return f;
     });
 
-    const hasAnyFail = newFields.some((f) => f.status === "fail" && f.required);
-    const hasAnyWarning = newFields.some((f) => f.status === "warning" && f.required);
-    const overallVerdict = (
-      hasAnyFail ? "rejected" : hasAnyWarning ? "needs_review" : "approved"
-    ) as VerificationResult["overallVerdict"];
-
     try {
-      await updateFieldsAction(result.id, newFields, overallVerdict);
+      await updateFieldsAction(result.id, newFields);
       setResult((prev) => ({
         ...prev,
         fields: newFields,
-        overallVerdict,
       }));
       setOverrideField(null);
     } catch (err) {
@@ -89,51 +58,18 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
     }
   };
 
-  const saveCompany = async (name: string) => {
-    const trimmed = name.trim();
-    if (!trimmed || trimmed === result.companyName) return;
-
-    setIsSavingCompany(true);
-    try {
-      const company = await ensureCompanyAction(trimmed);
-      await updateCompanyNameAction(result.id, company.name);
-      setResult((prev) => ({ ...prev, companyName: company.name }));
-      setCompanies((prev) => {
-        if (prev.some((c) => c.id === company.id)) return prev;
-        return [...prev, company].sort((a, b) => a.name.localeCompare(b.name));
-      });
-      setIsNewCompany(false);
-      setNewCompanyName("");
-      router.refresh();
-    } catch (err) {
-      console.error(err);
-      alert("Failed to save company. Please try again.");
-    } finally {
-      setIsSavingCompany(false);
-    }
-  };
-
-  const handleCompanySelect = async (value: string) => {
-    if (value === NEW_COMPANY_VALUE) {
-      setIsNewCompany(true);
-      setNewCompanyName("");
-      return;
-    }
-    setIsNewCompany(false);
-    await saveCompany(value);
-  };
-
-  const handleSignOff = async () => {
+  const handleDecide = async (decision: Exclude<ApplicationStatus, "pending">) => {
     if (!agent) return;
 
-    setIsSigningOff(true);
+    setIsDeciding(decision);
     try {
-      await updateReviewStatusAction(result.id, "reviewed", {
+      await decideApplicationAction(result.id, decision, {
         agentId: agent.id,
         agentName: agent.name,
       });
       setResult((prev) => ({
         ...prev,
+        overallVerdict: decision,
         reviewStatus: "reviewed",
         agentId: agent.id,
         agentName: agent.name,
@@ -141,9 +77,9 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
       router.refresh();
     } catch (err) {
       console.error(err);
-      alert("Failed to sign off on this application. Please try again.");
+      alert(`Failed to ${decision === "approved" ? "approve" : "reject"} this application. Please try again.`);
     } finally {
-      setIsSigningOff(false);
+      setIsDeciding(null);
     }
   };
 
@@ -161,107 +97,22 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
     }
   };
 
+  const blockingFields = unresolvedReviewFields(result.fields);
+  const canApprove = blockingFields.length === 0;
   const activeField = result.fields.find((f) => f.fieldName === overrideField);
-  const selectValue = isNewCompany
-    ? NEW_COMPANY_VALUE
-    : companies.some((c) => c.name === result.companyName)
-      ? result.companyName
-      : result.companyName && result.companyName !== "Unknown"
-        ? result.companyName
-        : "";
 
   return (
-    <div className="flex flex-col gap-4 flex-1 min-h-0 overflow-hidden">
-      {result.submissionSource === "applicant" && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-blue-500/25 bg-blue-500/5 p-4 shrink-0">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
-                Submitted through the applicant portal
-              </p>
-              <ReviewStatusBadge status={result.reviewStatus} />
-            </div>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-              {result.submittedByName
-                ? `Filed by ${result.submittedByName} at ${result.companyName}.`
-                : `Filed by ${result.companyName}.`}{" "}
-              {result.reviewStatus === "awaiting_review"
-                ? "Automated checks have run; sign off to confirm your review."
-                : `Reviewed by ${result.agentName}.`}
-            </p>
-          </div>
-          {result.reviewStatus === "awaiting_review" && (
-            <Button
-              type="button"
-              onClick={handleSignOff}
-              disabled={isSigningOff}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 shrink-0"
-            >
-              <CheckCircle2 className="h-4 w-4" />
-              {isSigningOff ? "Signing off..." : "Sign Off Review"}
-            </Button>
-          )}
-        </div>
-      )}
-
+    <div className="flex flex-col gap-4 flex-1 min-h-0">
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 rounded-lg border border-border bg-card p-4 shrink-0">
-        <div className="space-y-2 flex-1 min-w-0">
+        <div className="space-y-1.5 flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
-            <Label className="text-sm text-zinc-700 dark:text-zinc-300">Submitting Company</Label>
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Submitting Company</p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 w-full">
-            <Select
-              value={selectValue}
-              onValueChange={(value) => {
-                if (value != null) handleCompanySelect(String(value));
-              }}
-              disabled={isSavingCompany}
-            >
-              <SelectTrigger className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 w-full min-w-0 sm:min-w-[28rem] sm:max-w-2xl">
-                <SelectValue placeholder={result.companyName || "Select company"} />
-              </SelectTrigger>
-              <SelectContent className="min-w-[var(--anchor-width)]">
-                {!companies.some((c) => c.name === result.companyName) &&
-                  result.companyName &&
-                  result.companyName !== "Unknown" && (
-                    <SelectItem value={result.companyName}>
-                      {result.companyName}
-                    </SelectItem>
-                  )}
-                {companies.map((company) => (
-                  <SelectItem key={company.id} value={company.name}>
-                    {company.name}
-                  </SelectItem>
-                ))}
-                <SelectItem value={NEW_COMPANY_VALUE}>
-                  <span className="flex items-center gap-1.5">
-                    <Plus className="h-3.5 w-3.5" />
-                    Add new company
-                  </span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            {isNewCompany && (
-              <div className="flex gap-2 flex-1 min-w-0">
-                <Input
-                  placeholder="New company name"
-                  value={newCompanyName}
-                  onChange={(e) => setNewCompanyName(e.target.value)}
-                  className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
-                  disabled={isSavingCompany}
-                />
-                <Button
-                  type="button"
-                  onClick={() => saveCompany(newCompanyName)}
-                  disabled={!newCompanyName.trim() || isSavingCompany}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white shrink-0"
-                >
-                  Save
-                </Button>
-              </div>
-            )}
-          </div>
+          <CompanyInfoDialog
+            companyName={result.companyName}
+            submittedByName={result.submittedByName}
+          />
         </div>
 
         <Button
@@ -276,11 +127,56 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
         </Button>
       </div>
 
-      <div className="flex-1 min-h-0">
+      <div className="flex min-h-0 flex-1 flex-col">
         <VerificationCard
           result={result}
           onUpdateNotes={handleUpdateNotes}
           onOverrideField={setOverrideField}
+          reviewFooter={
+            isPending(result) ? (
+              <div className="flex flex-col gap-3">
+                {canApprove ? (
+                  <p className="text-sm text-foreground">
+                    All fields pass. This application can be approved.
+                  </p>
+                ) : (
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-foreground">
+                      {blockingFields.length}{" "}
+                      {blockingFields.length === 1 ? "field needs" : "fields need"}{" "}
+                      to be resolved to approve
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                      {blockingFields.map((field) => field.displayName).join(", ")}
+                    </p>
+                  </div>
+                )}
+                <Button
+                  type="button"
+                  onClick={() => handleDecide(canApprove ? "approved" : "rejected")}
+                  disabled={isDeciding !== null}
+                  className={
+                    canApprove
+                      ? "bg-emerald-600 hover:bg-emerald-700 text-white gap-2 w-full"
+                      : "bg-red-600 hover:bg-red-700 text-white gap-2 w-full"
+                  }
+                >
+                  {canApprove ? (
+                    <CheckCircle2 className="h-4 w-4" />
+                  ) : (
+                    <XCircle className="h-4 w-4" />
+                  )}
+                  {isDeciding
+                    ? canApprove
+                      ? "Approving..."
+                      : "Rejecting..."
+                    : canApprove
+                      ? "Approve"
+                      : "Reject"}
+                </Button>
+              </div>
+            ) : undefined
+          }
         />
       </div>
 

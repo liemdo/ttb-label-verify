@@ -16,15 +16,15 @@ export function ImageQualityCheck({ report }: ImageQualityCheckProps) {
       className={`${
         report.isLowResolution
           ? "bg-amber-500/10 border-amber-500/20 text-amber-300"
-          : "bg-blue-500/10 border-blue-500/20 text-blue-300"
+          : "bg-primary/10 border-primary/20 text-primary"
       }`}
     >
       {report.isLowResolution ? (
-        <AlertTriangle className={`h-4 w-4 ${report.isLowResolution ? "text-amber-400" : "text-blue-400"}`} />
+        <AlertTriangle className={`h-4 w-4 ${report.isLowResolution ? "text-amber-400" : "text-primary"}`} />
       ) : (
-        <Info className="h-4 w-4 text-blue-400" />
+        <Info className="h-4 w-4 text-primary" />
       )}
-      <AlertTitle className={report.isLowResolution ? "text-amber-400" : "text-blue-400"}>
+      <AlertTitle className={report.isLowResolution ? "text-amber-400" : "text-primary"}>
         Image Quality Notice
       </AlertTitle>
       <AlertDescription>

@@ -97,9 +97,6 @@ export function buildVerificationResult(
     };
   });
 
-  const overallVerdict = verdictFor(labelFields);
-
-  // Calculate estimated time saved
   const timeSavedMs = MANUAL_REVIEW_TIME_MS - options.processingTimeMs;
 
   return {
@@ -108,7 +105,7 @@ export function buildVerificationResult(
     companyName: options.companyName?.trim() || "Unknown",
     imageDataUrl: options.imageDataUrl,
     beverageType: options.beverageType,
-    overallVerdict,
+    overallVerdict: "pending",
     fields: labelFields,
     ocrEngine: options.ocrEngine,
     processingTimeMs: options.processingTimeMs,
@@ -118,9 +115,7 @@ export function buildVerificationResult(
     timeSavedMs: Math.max(0, timeSavedMs),
     submissionSource: options.submissionSource ?? "specialist",
     submittedByName: options.submittedByName,
-    // Portal submissions still need a specialist to sign off on the AI result
-    reviewStatus:
-      options.submissionSource === "applicant" ? "awaiting_review" : "reviewed",
+    reviewStatus: "awaiting_review",
   };
 }
 
@@ -186,14 +181,7 @@ export function applyApplicantConfirmation(
     };
   });
 
-  return { ...result, fields, overallVerdict: verdictFor(fields) };
-}
-
-/** A required failure rejects; a required gap needs a human. */
-export function verdictFor(fields: LabelField[]): VerificationResult["overallVerdict"] {
-  if (fields.some((f) => f.status === "fail" && f.required)) return "rejected";
-  if (fields.some((f) => f.status === "warning" && f.required)) return "needs_review";
-  return "approved";
+  return { ...result, fields, overallVerdict: "pending", reviewStatus: "awaiting_review" };
 }
 
 function getValidationResult(

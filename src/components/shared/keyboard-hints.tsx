@@ -1,33 +1,70 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { Keyboard } from "lucide-react";
 import { SHORTCUT_DEFINITIONS } from "@/hooks/use-keyboard-shortcuts";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 export function KeyboardHints() {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const onPointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+
+    window.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
+
   return (
-    <Tooltip>
-      <TooltipTrigger className="flex items-center gap-1.5 text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors px-2 py-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800">
+    <div ref={rootRef}>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        onClick={() => setOpen((prev) => !prev)}
+        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-md hover:bg-accent aria-expanded:bg-accent aria-expanded:text-foreground"
+      >
         <Keyboard className="h-3.5 w-3.5" />
         <span>Shortcuts</span>
-      </TooltipTrigger>
-      <TooltipContent side="top" align="end" className="w-56">
-        <div className="space-y-1.5">
-          <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">Keyboard Shortcuts</p>
-          {SHORTCUT_DEFINITIONS.map((s) => (
-            <div key={s.key} className="flex items-center justify-between text-xs">
-              <span className="text-zinc-500 dark:text-zinc-400">{s.description}</span>
-              <kbd className="px-1.5 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 text-[10px] font-mono border border-zinc-600">
-                {s.key === "Escape" ? "Esc" : s.key.toUpperCase()}
-              </kbd>
-            </div>
-          ))}
+      </button>
+
+      {open && (
+        <div
+          role="dialog"
+          aria-label="Keyboard shortcuts"
+          className="absolute bottom-full left-0 right-0 mb-2 rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-md z-10"
+        >
+          <p className="px-0.5 mb-2 text-xs font-semibold text-foreground">
+            Keyboard shortcuts
+          </p>
+          <div className="space-y-0.5">
+            {SHORTCUT_DEFINITIONS.map((shortcut) => (
+              <div
+                key={shortcut.key}
+                className="flex items-center justify-between gap-3 rounded-md px-0.5 py-1 text-xs"
+              >
+                <span className="text-muted-foreground">{shortcut.description}</span>
+                <kbd className="px-1.5 py-0.5 rounded bg-muted text-foreground text-[10px] font-mono border border-border">
+                  {shortcut.key === "Escape" ? "Esc" : shortcut.key.toUpperCase()}
+                </kbd>
+              </div>
+            ))}
+          </div>
         </div>
-      </TooltipContent>
-    </Tooltip>
+      )}
+    </div>
   );
 }

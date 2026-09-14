@@ -61,31 +61,31 @@ export function OverrideDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
+      <DialogContent className="bg-muted border-border">
         <DialogHeader>
-          <DialogTitle className="text-zinc-900 dark:text-zinc-100">
+          <DialogTitle className="text-foreground">
             Override: {fieldDisplayName}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           <div>
-            <Label className="text-zinc-500 dark:text-zinc-400 text-xs">Current Status</Label>
-            <p className="text-sm text-zinc-700 dark:text-zinc-300 capitalize mt-1">
+            <Label className="text-muted-foreground text-xs">Current Status</Label>
+            <p className="text-sm text-foreground capitalize mt-1">
               {currentStatus.replace("_", " ")}
             </p>
           </div>
 
           <div>
-            <Label className="text-zinc-500 dark:text-zinc-400 text-xs">New Status</Label>
+            <Label className="text-muted-foreground text-xs">New Status</Label>
             <Select
               value={newStatus}
               onValueChange={(v) => setNewStatus(v as VerificationStatus)}
             >
-              <SelectTrigger className="mt-1 bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200">
+              <SelectTrigger className="mt-1 bg-muted border-border text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700">
+              <SelectContent className="bg-muted border-border">
                 <SelectItem value="pass">Pass</SelectItem>
                 <SelectItem value="fail">Fail</SelectItem>
                 <SelectItem value="warning">Warning</SelectItem>
@@ -94,20 +94,20 @@ export function OverrideDialog({
           </div>
 
           <div>
-            <Label className="text-zinc-500 dark:text-zinc-400 text-xs">
-              Reason for Override <span className="text-zinc-600">(optional)</span>
+            <Label className="text-muted-foreground text-xs">
+              Reason for Override <span className="text-muted-foreground">(optional)</span>
             </Label>
             <Textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Optionally explain why you're overriding the AI result..."
-              className="mt-1 bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-600 min-h-[80px]"
+              className="mt-1 bg-muted border-border text-foreground placeholder:text-muted-foreground min-h-[80px]"
             />
           </div>
 
           {agent && (
-            <p className="text-xs text-zinc-500">
-              Overriding as <span className="text-zinc-500 dark:text-zinc-400">{agent.name}</span>
+            <p className="text-xs text-muted-foreground">
+              Overriding as <span className="text-muted-foreground">{agent.name}</span>
             </p>
           )}
         </div>
@@ -116,14 +116,14 @@ export function OverrideDialog({
           <Button
             variant="ghost"
             onClick={() => onOpenChange(false)}
-            className="text-zinc-500 dark:text-zinc-400"
+            className="text-muted-foreground"
           >
             Cancel
           </Button>
           <Button
             onClick={handleSubmit}
             disabled={!agent}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             Apply Override
           </Button>

@@ -29,7 +29,7 @@ export function TimeSaved({ processingTimeMs, timeSavedMs, variant = "inline" }:
   }
 
   return (
-    <div className="flex items-center gap-1.5 text-xs text-zinc-500">
+    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
       <Clock className="h-3 w-3" />
       <span>{processingSeconds}s</span>
       {timeSavedMs && timeSavedMs > 0 && (
@@ -73,7 +73,7 @@ export function TotalTimeSaved({
             Estimated time saved vs manual review
           </p>
           <p className="text-2xl font-bold text-emerald-400">{formatted}</p>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Based on a 7-minute manual review baseline
             {labelCount != null && labelCount > 0
               ? ` across ${labelCount} label${labelCount === 1 ? "" : "s"}`
@@ -82,7 +82,7 @@ export function TotalTimeSaved({
         </div>
         {todayMs != null && todayMs > 0 && (
           <div className="sm:text-right shrink-0">
-            <p className="text-xs text-zinc-500">Saved today</p>
+            <p className="text-xs text-muted-foreground">Saved today</p>
             <p className="text-lg font-semibold text-emerald-300">
               {formatDuration(todayMs)}
             </p>
@@ -94,7 +94,7 @@ export function TotalTimeSaved({
 
   return (
     <div className="text-sm">
-      <span className="text-zinc-500 dark:text-zinc-400">Total estimated time saved: </span>
+      <span className="text-muted-foreground">Total estimated time saved: </span>
       <span className="text-emerald-400 font-semibold">{formatted}</span>
     </div>
   );

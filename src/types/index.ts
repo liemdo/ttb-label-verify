@@ -33,7 +33,6 @@ export interface AppSettings {
   ocrEngine: OcrEngine;
   openaiApiKey: string;
   openaiModel: "gpt-4o" | "gpt-4o-mini";
-  defaultBeverageType: BeverageType;
   theme: "light" | "dark" | "system";
 }
 
@@ -104,16 +103,21 @@ export interface LabelField {
 /** Whether the label arrived through the company portal or was keyed in by staff. */
 export type SubmissionSource = "applicant" | "specialist";
 
-/** Tracks whether a specialist has signed off on the AI result. */
+/** Tracks whether a specialist has signed off. Kept in sync with overallVerdict. */
 export type ReviewStatus = "awaiting_review" | "reviewed";
+
+/** The one status shown for an application. */
+export type ApplicationStatus = "pending" | "approved" | "rejected";
 
 export interface VerificationResult {
   id: string;
   fileName: string;
   companyName: string;
+  /** Private Blob URL for new labels; legacy rows may still use a `data:` URL. */
   imageDataUrl: string;
   beverageType: BeverageType;
-  overallVerdict: "approved" | "rejected" | "needs_review";
+  /** Application status. `needs_review` is legacy and treated as pending. */
+  overallVerdict: ApplicationStatus | "needs_review";
   fields: LabelField[];
   ocrEngine: OcrEngine;
   processingTimeMs: number;

@@ -16,9 +16,9 @@ export function LoadingSpinner({ message = "Processing...", size = "md" }: Loadi
 
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-8">
-      <Loader2 className={`${sizeClass} animate-spin text-blue-400`} />
+      <Loader2 className={`${sizeClass} animate-spin text-primary`} />
       {message && (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 animate-pulse">{message}</p>
+        <p className="text-sm text-muted-foreground animate-pulse">{message}</p>
       )}
     </div>
   );

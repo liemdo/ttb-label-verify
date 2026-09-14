@@ -1,13 +1,12 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
-import type { AppSettings, OcrEngine, BeverageType } from "@/types";
+import type { AppSettings, OcrEngine } from "@/types";
 
 const DEFAULT_SETTINGS: AppSettings = {
   ocrEngine: "openai",
   openaiApiKey: "",
   openaiModel: "gpt-4o",
-  defaultBeverageType: "spirits",
   theme: "light",
 };
 
@@ -16,7 +15,6 @@ interface SettingsContextType {
   updateSettings: (updates: Partial<AppSettings>) => void;
   setOcrEngine: (engine: OcrEngine) => void;
   setOpenaiApiKey: (key: string) => void;
-  setDefaultBeverageType: (type: BeverageType) => void;
   getEffectiveApiKey: () => string;
 }
 
@@ -57,10 +55,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     setSettings((prev) => ({ ...prev, openaiApiKey: key }));
   }, []);
 
-  const setDefaultBeverageType = useCallback((type: BeverageType) => {
-    setSettings((prev) => ({ ...prev, defaultBeverageType: type }));
-  }, []);
-
   /** Returns the API key: UI setting takes priority, then env var */
   const getEffectiveApiKey = useCallback(() => {
     if (settings.openaiApiKey) return settings.openaiApiKey;
@@ -76,7 +70,6 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         updateSettings,
         setOcrEngine,
         setOpenaiApiKey,
-        setDefaultBeverageType,
         getEffectiveApiKey,
       }}
     >

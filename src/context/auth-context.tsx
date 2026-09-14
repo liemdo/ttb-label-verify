@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import type { Agent, Applicant, UserRole } from "@/types";
 import { AGENTS, APPLICANTS } from "@/lib/constants";
+import { PageLoading } from "@/components/shared/page-loading";
 
 const SESSION_KEY = "ttb-session";
 
@@ -82,9 +83,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     sessionStorage.removeItem(SESSION_KEY);
   }, []);
 
-  // Don't render children until hydrated to avoid flicker
   if (!isHydrated) {
-    return null;
+    return <PageLoading message="Loading..." />;
   }
 
   const role: UserRole | null = agent ? "specialist" : applicant ? "applicant" : null;

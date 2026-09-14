@@ -17,7 +17,7 @@ export function QuickActions({ allPassed, onApprove, onReject }: QuickActionsPro
         className={`${
           allPassed
             ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20"
-            : "bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300"
+            : "bg-muted hover:bg-accent text-foreground"
         } gap-2`}
         size="lg"
       >

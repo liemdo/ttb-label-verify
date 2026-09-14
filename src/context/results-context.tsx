@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect, useMemo } from "react";
 import type { VerificationResult, FieldOverride } from "@/types";
+import { applicationStatus } from "@/lib/application-status";
 import { MANUAL_REVIEW_TIME_MS } from "@/lib/constants";
 import { useAuth } from "@/context/auth-context";
 import { 
@@ -17,8 +18,8 @@ import {
 
 interface ResultsContextType {
   results: VerificationResult[];
-  addResult: (result: VerificationResult) => void;
-  addResults: (results: VerificationResult[]) => void;
+  addResult: (result: VerificationResult) => Promise<void>;
+  addResults: (results: VerificationResult[]) => Promise<void>;
   updateResult: (id: string, updates: Partial<VerificationResult>) => void;
   addOverride: (resultId: string, override: FieldOverride) => void;
   updateAgentNotes: (resultId: string, notes: string) => void;
@@ -30,7 +31,7 @@ interface ResultsContextType {
     total: number;
     approved: number;
     rejected: number;
-    needsReview: number;
+    pending: number;
     todayCount: number;
     totalTimeSavedMs: number;
     todayTimeSavedMs: number;
@@ -54,23 +55,45 @@ export function ResultsProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    fetchResultsAction().then((dbResults) => {
-      setResults(dbResults);
-      setIsLoading(false);
-    }).catch(err => {
-      console.error("Failed to load results on mount", err);
-      setIsLoading(false);
-    });
+    let cancelled = false;
+    setIsLoading(true);
+
+    fetchResultsAction()
+      .then((dbResults) => {
+        if (!cancelled) setResults(dbResults);
+      })
+      .catch((err) => {
+        console.error("Failed to load results on mount", err);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [isSpecialist]);
 
-  const addResult = useCallback((result: VerificationResult) => {
+  const addResult = useCallback(async (result: VerificationResult) => {
     setResults((prev) => [result, ...prev]);
-    saveResultAction(result).catch(console.error);
+    try {
+      await saveResultAction(result);
+    } catch (error) {
+      setResults((prev) => prev.filter((r) => r.id !== result.id));
+      throw error;
+    }
   }, []);
 
-  const addResults = useCallback((newResults: VerificationResult[]) => {
+  const addResults = useCallback(async (newResults: VerificationResult[]) => {
+    if (newResults.length === 0) return;
+    const ids = new Set(newResults.map((r) => r.id));
     setResults((prev) => [...newResults, ...prev]);
-    saveResultsAction(newResults).catch(console.error);
+    try {
+      await saveResultsAction(newResults);
+    } catch (error) {
+      setResults((prev) => prev.filter((r) => !ids.has(r.id)));
+      throw error;
+    }
   }, []);
 
   const updateResult = useCallback(
@@ -87,7 +110,6 @@ export function ResultsProvider({ children }: { children: React.ReactNode }) {
     (resultId: string, override: FieldOverride) => {
       setResults((prev) => {
         let newFields: VerificationResult["fields"] = [];
-        let newVerdict = "";
 
         const newResults = prev.map((r) => {
           if (r.id !== resultId) return r;
@@ -95,31 +117,13 @@ export function ResultsProvider({ children }: { children: React.ReactNode }) {
             if (f.fieldName !== override.fieldName) return f;
             return { ...f, status: override.overriddenStatus, override };
           });
-          const hasAnyFail = updatedFields.some(
-            (f) => f.status === "fail" && f.required
-          );
-          const hasAnyWarning = updatedFields.some(
-            (f) => f.status === "warning" && f.required
-          );
-          const overallVerdict = hasAnyFail
-            ? "rejected"
-            : hasAnyWarning
-            ? "needs_review"
-            : "approved";
-          
-          newFields = updatedFields;
-          newVerdict = overallVerdict;
 
-          return {
-            ...r,
-            fields: updatedFields,
-            overallVerdict: overallVerdict as VerificationResult["overallVerdict"],
-          };
+          newFields = updatedFields;
+          return { ...r, fields: updatedFields };
         });
 
-        // Async save
         if (newFields.length > 0) {
-          updateFieldsAction(resultId, newFields, newVerdict).catch(console.error);
+          updateFieldsAction(resultId, newFields).catch(console.error);
         }
 
         return newResults;
@@ -167,9 +171,9 @@ export function ResultsProvider({ children }: { children: React.ReactNode }) {
     );
     return {
       total: results.length,
-      approved: results.filter((r) => r.overallVerdict === "approved").length,
-      rejected: results.filter((r) => r.overallVerdict === "rejected").length,
-      needsReview: results.filter((r) => r.overallVerdict === "needs_review").length,
+      approved: results.filter((r) => applicationStatus(r) === "approved").length,
+      rejected: results.filter((r) => applicationStatus(r) === "rejected").length,
+      pending: results.filter((r) => applicationStatus(r) === "pending").length,
       todayCount: todayResults.length,
       // Cumulative across all reviews — used for stakeholder impact metrics
       totalTimeSavedMs: results.reduce(

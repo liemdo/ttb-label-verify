@@ -12,6 +12,32 @@ export interface Company {
   createdAt: string;
 }
 
+export async function fetchCompanyByNameAction(
+  name: string
+): Promise<Company | null> {
+  const trimmed = name.trim();
+  if (!trimmed) return null;
+
+  try {
+    const rows = await db
+      .select()
+      .from(companies)
+      .where(ilike(companies.name, trimmed))
+      .limit(1);
+
+    if (rows.length === 0) return null;
+    const r = rows[0];
+    return {
+      id: r.id,
+      name: r.name,
+      createdAt: r.createdAt.toISOString(),
+    };
+  } catch (error) {
+    console.error("Failed to fetch company:", error);
+    return null;
+  }
+}
+
 export async function fetchCompaniesAction(): Promise<Company[]> {
   try {
     const rows = await db

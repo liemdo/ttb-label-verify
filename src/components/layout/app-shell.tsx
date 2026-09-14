@@ -15,7 +15,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             isAuthenticated ? "ml-64" : ""
           }`}
         >
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-100 via-background to-background pointer-events-none dark:from-zinc-900/40" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/8 via-background to-background pointer-events-none" />
           <div className="relative z-10 h-full min-h-0">{children}</div>
         </main>
       </div>

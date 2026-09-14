@@ -15,6 +15,7 @@ import { LoadingSpinner } from "@/components/shared/loading-spinner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ensureCompanyAction } from "@/actions/companies";
+import { uploadLabelImageAction } from "@/actions/blob";
 import { saveResultAction } from "@/actions/results";
 import { extractWithTesseract } from "@/lib/tesseract";
 import {
@@ -44,7 +45,7 @@ function SubmitLabelContent() {
 
   const [files, setFiles] = useState<File[]>([]);
   const [qualityReports, setQualityReports] = useState<Record<string, ImageQualityReport>>({});
-  const [beverageType, setBeverageType] = useState<BeverageType>(settings.defaultBeverageType);
+  const [beverageType, setBeverageType] = useState<BeverageType>("spirits");
   const [skipComparison, setSkipComparison] = useState(true);
   const [appData, setAppData] = useState<ApplicationData>({});
 
@@ -120,6 +121,8 @@ function SubmitLabelContent() {
 
     try {
       const result = await runReview();
+      const imageDataUrl =
+        result.imageDataUrl || (await readFileAsDataUrl(files[0]));
 
       // Seed the editable form with what the AI read, falling back to anything
       // the applicant typed in beforehand
@@ -129,7 +132,7 @@ function SubmitLabelContent() {
           field.extractedValue?.trim() || field.expectedValue?.trim() || "";
       }
 
-      setReview(result);
+      setReview({ ...result, imageDataUrl });
       setConfirmedValues(seeded);
       window.scrollTo({ top: 0 });
     } catch (err) {
@@ -146,10 +149,22 @@ function SubmitLabelContent() {
     setError(null);
 
     try {
-      const confirmed = applyApplicantConfirmation(review, confirmedValues, {
-        id: applicant.id,
-        name: applicant.contactName,
-      });
+      if (!files[0]) {
+        throw new Error("The label image is missing. Please go back and upload it again.");
+      }
+
+      const formData = new FormData();
+      formData.append("file", files[0]);
+      const imageDataUrl = await uploadLabelImageAction(formData);
+
+      const confirmed = applyApplicantConfirmation(
+        { ...review, imageDataUrl },
+        confirmedValues,
+        {
+          id: applicant.id,
+          name: applicant.contactName,
+        }
+      );
 
       await ensureCompanyAction(applicant.companyName);
       await saveResultAction(confirmed);
@@ -173,15 +188,15 @@ function SubmitLabelContent() {
       <div className="flex items-center gap-4">
         <Link
           href="/portal"
-          className="p-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950"
+          className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors border border-border bg-card"
         >
           <ChevronLeft className="h-5 w-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">
+          <h1 className="text-2xl font-bold text-foreground">
             {review ? "Review your label information" : "Submit a Label"}
           </h1>
-          <p className="text-zinc-500 dark:text-zinc-400 mt-1">
+          <p className="text-muted-foreground mt-1">
             {review
               ? "Step 2 of 2 — confirm what the AI read, then submit"
               : "Step 1 of 2 — upload your label and run a review"}
@@ -229,7 +244,7 @@ function SubmitLabelContent() {
           </div>
 
           <div>
-            <Card className="p-5 bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800">
+            <Card className="p-5 bg-card border-border">
               <ApplicationForm
                 defaultBeverageType={beverageType}
                 companyName={applicant?.companyName ?? ""}
@@ -240,11 +255,11 @@ function SubmitLabelContent() {
                 }}
               />
 
-              <div className="mt-6 pt-6 border-t border-zinc-200 dark:border-zinc-800">
+              <div className="mt-6 pt-6 border-t border-border">
                 <Button
                   onClick={handleReview}
                   disabled={isReviewing}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                   size="lg"
                 >
                   {isReviewing ? (
@@ -259,7 +274,7 @@ function SubmitLabelContent() {
                     </span>
                   )}
                 </Button>
-                <p className="text-[11px] text-zinc-500 mt-2 text-center">
+                <p className="text-[11px] text-muted-foreground mt-2 text-center">
                   The AI reads your label and fills in the application for you.
                   You can correct anything before submitting.
                 </p>

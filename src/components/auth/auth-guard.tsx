@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/context/auth-context";
+import { PageLoading } from "@/components/shared/page-loading";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import type { UserRole } from "@/types";
@@ -26,7 +27,9 @@ export function AuthGuard({ children, allow = ["specialist"] }: AuthGuardProps) 
     }
   }, [isAuthenticated, isPermitted, homeRoute, router]);
 
-  if (!isPermitted) return null;
+  if (!isPermitted) {
+    return <PageLoading message="Loading..." />;
+  }
 
   return <>{children}</>;
 }

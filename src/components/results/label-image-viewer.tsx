@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { cn } from "cn";
+import { labelImageSrc } from "@/lib/blob";
 import { RotateCcw, ZoomIn, ZoomOut } from "lucide-react";
 
 const MIN_ZOOM = 1;
@@ -11,9 +13,17 @@ const ZOOM_STEP = 0.25;
 interface LabelImageViewerProps {
   src: string;
   alt?: string;
+  /** Stretch to fill a height-constrained parent (analyst/detail card). */
+  fill?: boolean;
+  hideTitle?: boolean;
 }
 
-export function LabelImageViewer({ src, alt = "Analyzed label" }: LabelImageViewerProps) {
+export function LabelImageViewer({
+  src,
+  alt = "Analyzed label",
+  fill = false,
+  hideTitle = false,
+}: LabelImageViewerProps) {
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const dragging = useRef(false);
@@ -84,15 +94,21 @@ export function LabelImageViewer({ src, alt = "Analyzed label" }: LabelImageView
   const zoomPercent = Math.round(zoom * 100);
 
   return (
-    <div className="flex flex-col gap-3 flex-1 min-h-0">
-      <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400">Label Image</h3>
+    <div className={cn("flex flex-col gap-3", fill && "flex-1 min-h-0")}>
+      {!hideTitle && (
+        <h3 className="text-sm font-medium text-muted-foreground">Label Image</h3>
+      )}
 
       <div
         ref={containerRef}
         data-label-image
-        className={`relative flex-1 rounded-lg overflow-hidden border border-border bg-background min-h-[360px] lg:min-h-0 select-none ${
+        className={cn(
+          "relative rounded-lg overflow-hidden border border-border bg-muted/30 select-none",
+          fill
+            ? "flex-1 min-h-[360px] lg:min-h-0"
+            : "h-[min(36rem,70vh)] min-h-[360px]",
           zoom > MIN_ZOOM ? "cursor-grab active:cursor-grabbing" : "cursor-default"
-        }`}
+        )}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -108,7 +124,7 @@ export function LabelImageViewer({ src, alt = "Analyzed label" }: LabelImageView
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={src}
+            src={labelImageSrc(src)}
             alt={alt}
             draggable={false}
             className="max-w-full max-h-full object-contain pointer-events-none"
@@ -118,7 +134,7 @@ export function LabelImageViewer({ src, alt = "Analyzed label" }: LabelImageView
         {/* Floating zoom controls on the image */}
         <div
           data-zoom-controls
-          className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white/95 dark:bg-zinc-900/95 p-1 shadow-lg backdrop-blur-sm"
+          className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 rounded-lg border border-border bg-card/95 p-1 shadow-lg backdrop-blur-sm"
         >
           <Button
             type="button"
@@ -126,13 +142,13 @@ export function LabelImageViewer({ src, alt = "Analyzed label" }: LabelImageView
             size="sm"
             onClick={zoomOut}
             disabled={zoom <= MIN_ZOOM}
-            className="h-8 gap-1.5 px-2.5 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white disabled:opacity-40"
+            className="h-8 gap-1.5 px-2.5 text-foreground hover:bg-accent hover:text-foreground disabled:opacity-40"
             title="Zoom out"
           >
             <ZoomOut className="h-4 w-4" />
             <span className="text-xs hidden sm:inline">Zoom out</span>
           </Button>
-          <span className="min-w-[3rem] px-1 text-center text-xs tabular-nums font-medium text-zinc-700 dark:text-zinc-300">
+          <span className="min-w-[3rem] px-1 text-center text-xs tabular-nums font-medium text-foreground">
             {zoomPercent}%
           </span>
           <Button
@@ -141,20 +157,20 @@ export function LabelImageViewer({ src, alt = "Analyzed label" }: LabelImageView
             size="sm"
             onClick={zoomIn}
             disabled={zoom >= MAX_ZOOM}
-            className="h-8 gap-1.5 px-2.5 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white disabled:opacity-40"
+            className="h-8 gap-1.5 px-2.5 text-foreground hover:bg-accent hover:text-foreground disabled:opacity-40"
             title="Zoom in"
           >
             <ZoomIn className="h-4 w-4" />
             <span className="text-xs hidden sm:inline">Zoom in</span>
           </Button>
-          <div className="mx-0.5 h-5 w-px bg-zinc-200 dark:bg-zinc-700" />
+          <div className="mx-0.5 h-5 w-px bg-border" />
           <Button
             type="button"
             variant="ghost"
             size="sm"
             onClick={reset}
             disabled={zoom <= MIN_ZOOM && offset.x === 0 && offset.y === 0}
-            className="h-8 w-8 p-0 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-white disabled:opacity-40"
+            className="h-8 w-8 p-0 text-foreground hover:bg-accent hover:text-foreground disabled:opacity-40"
             title="Reset zoom"
           >
             <RotateCcw className="h-3.5 w-3.5" />
