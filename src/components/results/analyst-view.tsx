@@ -17,7 +17,7 @@ import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { ConfirmDeleteDialog } from "@/components/shared/confirm-delete-dialog";
 import { CompanyInfoDialog } from "@/components/results/company-info-dialog";
 import { unresolvedReviewFields, submissionAttribution, applicationStatus } from "@/lib/application-status";
-import type { ApplicationStatus, FieldOverride, VerificationResult } from "@/types";
+import type { ApplicationStatus, FieldOverride, ReviewStatus, VerificationResult } from "@/types";
 import { Building2, Trash2 } from "lucide-react";
 
 export function AnalystView({
@@ -78,7 +78,7 @@ export function AnalystView({
       const reopen = decision === "pending";
       const updates = {
         overallVerdict: decision,
-        reviewStatus: (reopen ? "awaiting_review" : "reviewed") as const,
+        reviewStatus: (reopen ? "awaiting_review" : "reviewed") as ReviewStatus,
         agentId: reopen ? "unassigned" : agent.id,
         agentName: reopen ? "Unassigned" : agent.name,
       };
