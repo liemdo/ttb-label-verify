@@ -19,6 +19,7 @@ interface VerificationCardProps {
   onUpdateNotes?: (notes: string) => void;
   hideImage?: boolean;
   reviewFooter?: ReactNode;
+  headerActions?: ReactNode;
 }
 
 export function VerificationCard({
@@ -27,6 +28,7 @@ export function VerificationCard({
   onUpdateNotes,
   hideImage = false,
   reviewFooter,
+  headerActions,
 }: VerificationCardProps) {
   const govWarningField = useMemo(
     () => result.fields.find((f) => f.fieldName === "governmentWarning"),
@@ -90,9 +92,12 @@ export function VerificationCard({
             <span>{submissionAttribution(result)}</span>
           </div>
         </div>
-        <div className="shrink-0 flex flex-col items-start sm:items-end gap-1.5">
-          <ApplicationStatusBadge result={result} />
-          <ApprovedByLine result={result} />
+        <div className="shrink-0 flex flex-col items-start sm:items-end gap-2">
+          <div className="flex flex-col items-start sm:items-end gap-1.5">
+            <ApplicationStatusBadge result={result} />
+            <ApprovedByLine result={result} />
+          </div>
+          {headerActions}
         </div>
       </div>
 

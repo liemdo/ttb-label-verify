@@ -15,7 +15,7 @@ export function WarningDiffView({ extractedWarning, status }: WarningDiffViewPro
   if (!extractedWarning) {
     return (
       <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-4">
-        <p className="text-sm font-medium text-red-400 mb-2">
+        <p className="text-sm font-medium text-red-800 dark:text-red-300 mb-2">
           Government Warning Not Found
         </p>
         <p className="text-xs text-muted-foreground">
@@ -42,7 +42,7 @@ export function WarningDiffView({ extractedWarning, status }: WarningDiffViewPro
           : "border-red-500/30 bg-red-500/5"
       }`}
     >
-      <p className={`text-sm font-medium mb-3 ${isMatch ? "text-emerald-400" : "text-red-400"}`}>
+      <p className={`text-sm font-medium mb-3 ${isMatch ? "text-emerald-800 dark:text-emerald-300" : "text-red-800 dark:text-red-300"}`}>
         {isMatch
           ? "✓ Government Warning Matches"
           : "✗ Government Warning Differences Detected"}
@@ -63,24 +63,24 @@ export function WarningDiffView({ extractedWarning, status }: WarningDiffViewPro
         <>
           <div className="flex gap-4 text-[10px] text-muted-foreground mb-2">
             <span className="flex items-center gap-1">
-              <span className="inline-block w-3 h-3 rounded bg-red-500/30 border border-red-500/50" />
+              <span className="inline-block w-3 h-3 rounded bg-red-200 border border-red-800 dark:bg-red-900/70 dark:border-red-400" />
               Expected (missing)
             </span>
             <span className="flex items-center gap-1">
-              <span className="inline-block w-3 h-3 rounded bg-emerald-500/30 border border-emerald-500/50" />
+              <span className="inline-block w-3 h-3 rounded bg-emerald-200 border border-emerald-800 dark:bg-emerald-900/70 dark:border-emerald-400" />
               Found on label (extra)
             </span>
           </div>
 
-          <div className="p-3 bg-muted rounded border border-border text-sm leading-relaxed">
+          <div className="p-3 bg-muted rounded border border-border text-sm leading-relaxed wrap-anywhere">
             {computeDiff(GOVERNMENT_WARNING_TEXT, extractedWarning).map((seg: DiffSegment, i: number) => (
               <span
                 key={i}
                 className={
                   seg.type === "removed"
-                    ? "bg-red-500/20 text-red-300 line-through"
+                    ? "bg-red-200 text-red-900 dark:bg-red-900/70 dark:text-red-200 line-through"
                     : seg.type === "added"
-                    ? "bg-emerald-500/20 text-emerald-300"
+                    ? "bg-emerald-200 text-emerald-900 dark:bg-emerald-900/70 dark:text-emerald-200"
                     : "text-foreground"
                 }
               >

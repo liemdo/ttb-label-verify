@@ -31,14 +31,17 @@ export function ConfirmDeleteDialog({
 }: ConfirmDeleteDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-muted border-border sm:max-w-md">
-        <DialogHeader>
+      <DialogContent
+        className="bg-card border-border sm:max-w-md shadow-xl overflow-hidden"
+        overlayClassName="bg-black/50 backdrop-blur-sm"
+      >
+        <DialogHeader className="min-w-0">
           <DialogTitle className="text-foreground">{title}</DialogTitle>
-          <DialogDescription className="text-muted-foreground">
+          <DialogDescription className="text-muted-foreground min-w-0 wrap-anywhere">
             {description}
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="border-border bg-muted/50">
+        <DialogFooter className="border-border">
           <Button
             type="button"
             variant="ghost"

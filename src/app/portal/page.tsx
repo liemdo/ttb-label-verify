@@ -19,10 +19,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ConfirmDeleteDialog } from "@/components/shared/confirm-delete-dialog";
+import { useResults } from "@/context/results-context";
 import { BEVERAGE_TYPE_LABELS } from "@/lib/constants";
 import { labelImageSrc } from "@/lib/blob";
 import type { VerificationResult } from "@/types";
-import { FileImage, Upload } from "lucide-react";
+import { FileImage, Trash2, Upload } from "lucide-react";
 
 export default function PortalPage() {
   return (
@@ -40,8 +42,13 @@ function brandFor(submission: VerificationResult): string {
 function PortalContent() {
   const router = useRouter();
   const { applicant } = useAuth();
+  const { deleteResult } = useResults();
   const [submissions, setSubmissions] = useState<VerificationResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [pendingDelete, setPendingDelete] = useState<VerificationResult | null>(
+    null
+  );
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const companyName = applicant?.companyName;
 
@@ -57,6 +64,21 @@ function PortalContent() {
   useEffect(load, [load]);
 
   const pendingCount = submissions.filter(isPending).length;
+
+  const handleConfirmDelete = async () => {
+    if (!pendingDelete) return;
+    setIsDeleting(true);
+    try {
+      await deleteResult(pendingDelete.id);
+      setSubmissions((prev) => prev.filter((s) => s.id !== pendingDelete.id));
+      setPendingDelete(null);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete this submission. Please try again.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -107,6 +129,9 @@ function PortalContent() {
                 <TableHead>Status</TableHead>
                 <TableHead>Date submitted</TableHead>
                 <TableHead>File</TableHead>
+                <TableHead className="w-12 pr-4">
+                  <span className="sr-only">Actions</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -150,12 +175,40 @@ function PortalContent() {
                   <TableCell className="text-muted-foreground max-w-[12rem] truncate">
                     {submission.fileName}
                   </TableCell>
+                  <TableCell className="pr-4">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        setPendingDelete(submission);
+                      }}
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-red-400 hover:bg-red-500/10"
+                      title="Delete application"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </Card>
       )}
+
+      <ConfirmDeleteDialog
+        open={!!pendingDelete}
+        onOpenChange={(open) => !open && setPendingDelete(null)}
+        description={
+          pendingDelete
+            ? `This will permanently delete "${pendingDelete.fileName}". This action cannot be undone.`
+            : ""
+        }
+        isDeleting={isDeleting}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { LabelImageViewer } from "@/components/results/label-image-viewer";
 import { ConfidenceBar } from "@/components/results/confidence-bar";
-import { StatusBadge } from "@/components/shared/status-badge";
+import { WarningDiffView } from "@/components/results/warning-diff-view";
 import { APPLICANT_CONFIRMABLE } from "@/lib/verification";
 import { BEVERAGE_TYPE_LABELS } from "@/lib/constants";
 import type { VerificationResult } from "@/types";
@@ -173,25 +173,20 @@ export function LabelReviewStep({
           </Card>
 
           {warningField && (
-            <Card className="p-5 bg-card border-border space-y-2">
-              <div className="flex items-center justify-between gap-2">
+            <Card className="p-5 bg-card border-border space-y-3">
+              <div>
                 <h2 className="text-sm font-medium text-foreground">
                   {warningField.displayName}
                 </h2>
-                <StatusBadge status={warningField.status} />
+                <p className="text-xs text-muted-foreground mt-1">
+                  The mandated warning statement is fixed text, so it is checked
+                  automatically rather than entered.
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground">
-                The mandated warning statement is fixed text, so it is checked
-                automatically rather than entered.
-              </p>
-              <p className="text-sm text-foreground leading-relaxed">
-                {warningField.extractedValue || (
-                  <span className="text-muted-foreground italic">Not found on label</span>
-                )}
-              </p>
-              {warningField.notes && (
-                <p className="text-[11px] text-muted-foreground">{warningField.notes}</p>
-              )}
+              <WarningDiffView
+                extractedWarning={warningField.extractedValue}
+                status={warningField.status}
+              />
             </Card>
           )}
         </div>
