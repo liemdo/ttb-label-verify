@@ -1,5 +1,3 @@
-"use client";
-
 import type { ApplicationStatus, VerificationStatus } from "@/types";
 import { applicationReviewerName, applicationStatus } from "@/lib/application-status";
 import type { VerificationResult } from "@/types";
@@ -104,13 +102,15 @@ export function ApprovedByLine({
   result: Pick<VerificationResult, "overallVerdict" | "reviewStatus" | "agentName">;
   className?: string;
 }) {
-  if (applicationStatus(result) !== "approved") return null;
+  const status = applicationStatus(result);
+  if (status !== "approved" && status !== "rejected") return null;
   const name = applicationReviewerName(result.agentName);
   if (!name) return null;
 
   return (
     <p className={`text-xs text-muted-foreground ${className}`.trim()}>
-      Approved by <span className="font-medium text-foreground">{name}</span>
+      {status === "approved" ? "Approved" : "Rejected"} by{" "}
+      <span className="font-medium text-foreground">{name}</span>
     </p>
   );
 }

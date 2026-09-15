@@ -108,7 +108,7 @@ export function VerificationCard({
           </div>
         )}
 
-        <div className={`w-full ${hideImage ? "" : "lg:w-2/5"} min-h-0 flex flex-col`}>
+        <div className={`w-full ${hideImage ? "" : "lg:w-2/5"} min-h-0 flex flex-col overflow-visible`}>
           <div
             ref={detailsRef}
             className="p-5 space-y-6 min-h-0 flex-1 overflow-y-auto overscroll-contain custom-scrollbar"
@@ -175,7 +175,7 @@ export function VerificationCard({
           </div>
 
           {reviewFooter && (
-            <div className="shrink-0 border-t border-border bg-card p-4">
+            <div className="relative z-20 shrink-0 overflow-visible border-t border-border bg-card p-4">
               {reviewFooter}
             </div>
           )}

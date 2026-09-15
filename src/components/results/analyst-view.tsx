@@ -16,7 +16,7 @@ import { useAuth } from "@/context/auth-context";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { ConfirmDeleteDialog } from "@/components/shared/confirm-delete-dialog";
 import { CompanyInfoDialog } from "@/components/results/company-info-dialog";
-import { isPending, unresolvedReviewFields, submissionAttribution } from "@/lib/application-status";
+import { unresolvedReviewFields, submissionAttribution, applicationStatus } from "@/lib/application-status";
 import type { ApplicationStatus, FieldOverride, VerificationResult } from "@/types";
 import { Building2, Trash2 } from "lucide-react";
 
@@ -34,7 +34,7 @@ export function AnalystView({
   const [overrideField, setOverrideField] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [isDeciding, setIsDeciding] = useState<Exclude<ApplicationStatus, "pending"> | null>(null);
+  const [isDeciding, setIsDeciding] = useState<ApplicationStatus | null>(null);
 
   const handleUpdateNotes = async (notes: string) => {
     try {
@@ -66,8 +66,8 @@ export function AnalystView({
     }
   };
 
-  const handleDecide = async (decision: Exclude<ApplicationStatus, "pending">) => {
-    if (!agent) return;
+  const handleDecide = async (decision: ApplicationStatus) => {
+    if (!agent || applicationStatus(result) === decision) return;
 
     setIsDeciding(decision);
     try {
@@ -75,18 +75,24 @@ export function AnalystView({
         agentId: agent.id,
         agentName: agent.name,
       });
+      const reopen = decision === "pending";
       const updates = {
         overallVerdict: decision,
-        reviewStatus: "reviewed" as const,
-        agentId: agent.id,
-        agentName: agent.name,
+        reviewStatus: (reopen ? "awaiting_review" : "reviewed") as const,
+        agentId: reopen ? "unassigned" : agent.id,
+        agentName: reopen ? "Unassigned" : agent.name,
       };
       setResult((prev) => ({ ...prev, ...updates }));
       updateResult(result.id, updates);
       router.refresh();
     } catch (err) {
       console.error(err);
-      alert(`Failed to ${decision === "approved" ? "approve" : "reject"} this application. Please try again.`);
+      const labels: Record<ApplicationStatus, string> = {
+        pending: "reopen",
+        approved: "approve",
+        rejected: "reject",
+      };
+      alert(`Failed to ${labels[decision]} this application. Please try again.`);
     } finally {
       setIsDeciding(null);
     }
@@ -110,14 +116,12 @@ export function AnalystView({
     }
   };
 
-  const canApprove = unresolvedReviewFields(result.fields).length === 0;
-
   useKeyboardShortcuts([
     {
       key: "a",
       description: "Quick Approve",
       action: () => {
-        if (isPending(result) && canApprove) {
+        if (applicationStatus(result) !== "approved") {
           void handleDecide("approved");
         }
       },
@@ -126,7 +130,7 @@ export function AnalystView({
       key: "r",
       description: "Quick Reject",
       action: () => {
-        if (isPending(result) && !canApprove) {
+        if (applicationStatus(result) !== "rejected") {
           void handleDecide("rejected");
         }
       },
@@ -135,7 +139,7 @@ export function AnalystView({
       key: "o",
       description: "Override Field",
       action: () => {
-        if (!isPending(result) || overrideField) return;
+        if (overrideField) return;
         const blocking = unresolvedReviewFields(result.fields);
         const target =
           blocking[0] ?? result.fields.find((field) => field.status !== "pass");
@@ -182,13 +186,11 @@ export function AnalystView({
           onUpdateNotes={handleUpdateNotes}
           onOverrideField={setOverrideField}
           reviewFooter={
-            isPending(result) ? (
-              <ReviewDecisionFooter
-                result={result}
-                onDecide={handleDecide}
-                isDeciding={isDeciding}
-              />
-            ) : undefined
+            <ReviewDecisionFooter
+              result={result}
+              onDecide={handleDecide}
+              isDeciding={isDeciding}
+            />
           }
         />
       </div>

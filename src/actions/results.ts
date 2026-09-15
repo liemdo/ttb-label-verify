@@ -150,19 +150,21 @@ export async function updateFieldsAction(id: string, fields: LabelField[]): Prom
   revalidateResultViews(id);
 }
 
-/** A specialist decides the application's one status: approved or rejected. */
+/** A specialist sets the application's status, including reversing a prior decision. */
 export async function decideApplicationAction(
   id: string,
-  decision: Exclude<ApplicationStatus, "pending">,
+  decision: ApplicationStatus,
   reviewer: { agentId: string; agentName: string }
 ): Promise<void> {
+  const reopen = decision === "pending";
+
   await db
     .update(verificationResults)
     .set({
       overallVerdict: decision,
-      reviewStatus: "reviewed",
-      agentId: reviewer.agentId,
-      agentName: reviewer.agentName,
+      reviewStatus: reopen ? "awaiting_review" : "reviewed",
+      agentId: reopen ? "unassigned" : reviewer.agentId,
+      agentName: reopen ? "Unassigned" : reviewer.agentName,
     })
     .where(eq(verificationResults.id, id));
 
