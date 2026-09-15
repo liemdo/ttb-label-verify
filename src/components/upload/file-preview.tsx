@@ -3,14 +3,16 @@
 import { useState } from "react";
 import { ZoomIn, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { LabelImageViewer } from "@/components/results/label-image-viewer";
 
 interface FilePreviewProps {
   file: File;
   onClear: () => void;
   disabled?: boolean;
+  scanning?: boolean;
 }
 
-export function FilePreview({ file, onClear, disabled }: FilePreviewProps) {
+export function FilePreview({ file, onClear, disabled, scanning = false }: FilePreviewProps) {
   const [url] = useState(() => URL.createObjectURL(file));
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -25,26 +27,41 @@ export function FilePreview({ file, onClear, disabled }: FilePreviewProps) {
             className="max-h-full max-w-full object-contain drop-shadow-md rounded"
           />
         </div>
-        
-        {/* Overlay controls */}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-          <button
-            onClick={() => setIsFullscreen(true)}
-            className="p-2 rounded-full bg-card/80 text-foreground hover:bg-accent transition-colors backdrop-blur-sm"
-            title="Zoom image"
+
+        {scanning ? (
+          <div
+            className="absolute inset-0 overflow-hidden pointer-events-none"
+            aria-live="polite"
+            aria-busy="true"
           >
-            <ZoomIn className="h-5 w-5" />
-          </button>
-          {!disabled && (
+            <div className="absolute inset-0 bg-primary/8" />
+            <div className="label-scan-beam" />
+            <div className="absolute inset-x-0 bottom-12 flex justify-center">
+              <span className="rounded-full border border-border bg-card/90 px-3 py-1 text-xs font-medium text-foreground shadow-sm backdrop-blur-sm">
+                Scanning label…
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
             <button
-              onClick={onClear}
-              className="p-2 rounded-full bg-red-500/80 text-white hover:bg-red-600 transition-colors backdrop-blur-sm"
-              title="Remove image"
+              onClick={() => setIsFullscreen(true)}
+              className="p-2 rounded-full bg-card/80 text-foreground hover:bg-accent transition-colors backdrop-blur-sm"
+              title="Zoom image"
             >
-              <X className="h-5 w-5" />
+              <ZoomIn className="h-5 w-5" />
             </button>
-          )}
-        </div>
+            {!disabled && (
+              <button
+                onClick={onClear}
+                className="p-2 rounded-full bg-red-500/80 text-white hover:bg-red-600 transition-colors backdrop-blur-sm"
+                title="Remove image"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+        )}
         
         {/* File info footer */}
         <div className="absolute bottom-0 left-0 right-0 bg-card/80 backdrop-blur-md p-2.5 border-t border-border/50 flex items-center justify-between">
@@ -57,25 +74,11 @@ export function FilePreview({ file, onClear, disabled }: FilePreviewProps) {
         </div>
       </div>
 
-      {/* Fullscreen Dialog */}
       <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
-        <DialogContent className="max-w-5xl w-[90vw] h-[90vh] p-0 bg-transparent border-none shadow-none flex flex-col">
+        <DialogContent className="flex h-[90vh] w-[90vw] max-w-5xl flex-col gap-0 p-4 sm:max-w-5xl">
           <DialogTitle className="sr-only">Image Preview</DialogTitle>
-          <div className="flex justify-end p-4">
-            <button
-              onClick={() => setIsFullscreen(false)}
-              className="p-2 rounded-full bg-card/80 text-foreground hover:bg-accent transition-colors backdrop-blur-sm border border-border"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-          <div className="flex-1 min-h-0 flex items-center justify-center p-4 pt-0">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={url}
-              alt={file.name}
-              className="max-h-full max-w-full object-contain rounded-lg shadow-2xl"
-            />
+          <div className="flex min-h-0 flex-1 flex-col pr-8">
+            <LabelImageViewer src={url} alt={file.name} fill hideTitle />
           </div>
         </DialogContent>
       </Dialog>

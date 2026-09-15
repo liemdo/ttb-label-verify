@@ -6,16 +6,20 @@ import { fetchCompanyByNameAction, type Company } from "@/actions/companies";
 import { fetchResultsByCompanyAction } from "@/actions/results";
 import { applicationStatus } from "@/lib/application-status";
 import { APPLICANTS } from "@/lib/constants";
-import { Building2, Calendar, FileStack, User, X } from "lucide-react";
+import { Building2, Calendar, FileStack, Mail, Phone, Send, User, X } from "lucide-react";
+import { submissionAttribution } from "@/lib/application-status";
+import type { SubmissionSource } from "@/types";
 
 interface CompanyInfoDialogProps {
   companyName: string;
   submittedByName?: string;
+  submissionSource?: SubmissionSource;
 }
 
 export function CompanyInfoDialog({
   companyName,
   submittedByName,
+  submissionSource,
 }: CompanyInfoDialogProps) {
   const [open, setOpen] = useState(false);
   const [company, setCompany] = useState<Company | null>(null);
@@ -30,7 +34,10 @@ export function CompanyInfoDialog({
   const applicant = APPLICANTS.find(
     (a) => a.companyName.toLowerCase() === companyName.trim().toLowerCase()
   );
-  const contactName = applicant?.contactName ?? submittedByName;
+  const contactName =
+    submissionSource === "specialist"
+      ? applicant?.contactName
+      : applicant?.contactName ?? submittedByName;
 
   useEffect(() => {
     if (!open || !companyName.trim()) return;
@@ -125,9 +132,25 @@ export function CompanyInfoDialog({
                   {company?.name ?? companyName}
                 </InfoRow>
                 <InfoRow icon={<User className="h-4 w-4" />} label="Contact">
-                  {contactName
-                    ? `${contactName}${applicant?.role ? ` · ${applicant.role}` : ""}`
+                  {company?.contactName || contactName
+                    ? `${company?.contactName || contactName}${
+                        company?.contactRole || applicant?.role
+                          ? ` · ${company?.contactRole || applicant?.role}`
+                          : ""
+                      }`
                     : "Not on file"}
+                </InfoRow>
+                <InfoRow icon={<Phone className="h-4 w-4" />} label="Phone">
+                  {company?.contactPhone || applicant?.phone || "Not on file"}
+                </InfoRow>
+                <InfoRow icon={<Mail className="h-4 w-4" />} label="Email">
+                  {company?.contactEmail || applicant?.email || "Not on file"}
+                </InfoRow>
+                <InfoRow icon={<Send className="h-4 w-4" />} label="Filed by">
+                  {submissionAttribution({
+                    submissionSource: submissionSource ?? "specialist",
+                    submittedByName,
+                  })}
                 </InfoRow>
                 <InfoRow icon={<Calendar className="h-4 w-4" />} label="Added">
                   {isLoading

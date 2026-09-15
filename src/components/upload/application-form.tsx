@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { ApplicationData, BeverageType } from "@/types";
-import { fetchCompaniesAction, type Company } from "@/actions/companies";
+import { fetchCompaniesAction, type Company, type CompanyContactInput } from "@/actions/companies";
 import { getGuidelineForBeverage } from "@/lib/ttb-guidelines";
 import {
   BEVERAGE_TYPE_LABELS,
@@ -42,6 +42,9 @@ interface ApplicationFormProps {
   ) => void;
   /** Omit to lock the company, as when an applicant submits their own label. */
   onCompanyChange?: (companyName: string) => void;
+  onNewCompanyContactChange?: (contact: CompanyContactInput | null) => void;
+  /** Open the application fields so the label is matched to the form by default. */
+  compareByDefault?: boolean;
 }
 
 export function ApplicationForm({
@@ -49,13 +52,18 @@ export function ApplicationForm({
   companyName,
   onChange,
   onCompanyChange,
+  onNewCompanyContactChange,
+  compareByDefault = false,
 }: ApplicationFormProps) {
   const [beverageType, setBeverageType] = useState<BeverageType>(defaultBeverageType);
-  const [isManualEntry, setIsManualEntry] = useState(false);
+  const [isManualEntry, setIsManualEntry] = useState(compareByDefault);
   const [data, setData] = useState<ApplicationData>({});
   const [companies, setCompanies] = useState<Company[]>([]);
   const [isNewCompany, setIsNewCompany] = useState(false);
   const [newCompanyName, setNewCompanyName] = useState("");
+  const [newContactName, setNewContactName] = useState("");
+  const [newContactPhone, setNewContactPhone] = useState("");
+  const [newContactEmail, setNewContactEmail] = useState("");
 
   const companyLocked = !onCompanyChange;
 
@@ -97,17 +105,33 @@ export function ApplicationForm({
     onChange({}, beverageType, true);
   };
 
+  const emitNewContact = (
+    contactName: string,
+    contactPhone: string,
+    contactEmail: string
+  ) => {
+    onNewCompanyContactChange?.({ contactName, contactPhone, contactEmail });
+  };
+
   const handleCompanySelect = (value: string) => {
     if (!onCompanyChange) return;
     if (value === NEW_COMPANY_VALUE) {
       setIsNewCompany(true);
       setNewCompanyName("");
+      setNewContactName("");
+      setNewContactPhone("");
+      setNewContactEmail("");
       onCompanyChange("");
+      emitNewContact("", "", "");
       return;
     }
     setIsNewCompany(false);
     setNewCompanyName("");
+    setNewContactName("");
+    setNewContactPhone("");
+    setNewContactEmail("");
     onCompanyChange(value);
+    onNewCompanyContactChange?.(null);
   };
 
   const handleNewCompanyChange = (value: string) => {
@@ -164,18 +188,57 @@ export function ApplicationForm({
               </Select>
             </div>
             {isNewCompany && (
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">New company name</Label>
-                <Input
-                  placeholder="e.g. Oak Barrel Distilling Co."
-                  value={newCompanyName}
-                  onChange={(e) => handleNewCompanyChange(e.target.value)}
-                  className="bg-muted border-border"
-                  autoFocus
-                />
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">New company name</Label>
+                  <Input
+                    placeholder="e.g. Oak Barrel Distilling Co."
+                    value={newCompanyName}
+                    onChange={(e) => handleNewCompanyChange(e.target.value)}
+                    className="bg-muted border-border"
+                    autoFocus
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Contact person</Label>
+                  <Input
+                    placeholder="e.g. Ruth Alvarez"
+                    value={newContactName}
+                    onChange={(e) => {
+                      setNewContactName(e.target.value);
+                      emitNewContact(e.target.value, newContactPhone, newContactEmail);
+                    }}
+                    className="bg-muted border-border"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Phone number</Label>
+                  <Input
+                    type="tel"
+                    placeholder="e.g. (502) 555-0142"
+                    value={newContactPhone}
+                    onChange={(e) => {
+                      setNewContactPhone(e.target.value);
+                      emitNewContact(newContactName, e.target.value, newContactEmail);
+                    }}
+                    className="bg-muted border-border"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Email</Label>
+                  <Input
+                    type="email"
+                    placeholder="e.g. ruth.alvarez@oakbarreldistilling.com"
+                    value={newContactEmail}
+                    onChange={(e) => {
+                      setNewContactEmail(e.target.value);
+                      emitNewContact(newContactName, newContactPhone, e.target.value);
+                    }}
+                    className="bg-muted border-border"
+                  />
+                </div>
                 <p className="text-[11px] text-muted-foreground">
-                  This company will be saved to the database when you run
-                  verification.
+                  This company and contact will be saved when you run verification.
                 </p>
               </div>
             )}
@@ -183,14 +246,12 @@ export function ApplicationForm({
         )}
       </div>
 
-      {/* Product details are optional: the AI reads whatever is on the label,
-          and stated values simply give it something to check against. */}
       {!isManualEntry ? (
         <div className="rounded-lg border border-dashed border-border bg-muted/40 p-4 text-center">
           <p className="text-sm text-foreground">Product information</p>
           <p className="text-xs text-muted-foreground mt-1">
-            The AI reads these details straight from your label. Enter them
-            yourself to have the label checked against what you expect.
+            Matching is skipped. Enter the application values to check the
+            label against the form.
           </p>
           <Button
             type="button"
@@ -199,14 +260,14 @@ export function ApplicationForm({
             className="mt-4 border-border text-foreground hover:bg-accent gap-2"
           >
             <Pencil className="h-4 w-4" />
-            Enter information manually
+            Enter application data
           </Button>
         </div>
       ) : (
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-2">
             <h3 className="text-sm font-medium text-foreground">
-              Product information
+              Application data
             </h3>
             <Button
               type="button"
@@ -216,7 +277,7 @@ export function ApplicationForm({
               className="h-7 gap-1.5 px-2 text-muted-foreground hover:text-foreground"
             >
               <X className="h-3.5 w-3.5" />
-              <span className="text-xs">Clear</span>
+              <span className="text-xs">Skip comparison</span>
             </Button>
           </div>
 
@@ -250,6 +311,11 @@ export function ApplicationForm({
               <div key={field.field} className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground flex items-center gap-2">
                   {FIELD_DISPLAY_NAMES[field.field] || field.displayName}
+                  {field.required && !field.onlyIf && (
+                    <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                      required
+                    </span>
+                  )}
                   {field.onlyIf === "imported" && (
                     <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
                       imports only
@@ -267,8 +333,9 @@ export function ApplicationForm({
           </div>
 
           <p className="text-[11px] text-muted-foreground">
-            Leave anything you are unsure about blank — blank fields are read
-            from the label instead of being compared.
+            Enter what is on the application so we can match it to the label.
+            Country of origin is only required for imports. Skip comparison if
+            you do not have application data.
           </p>
         </div>
       )}

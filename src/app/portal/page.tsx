@@ -7,7 +7,7 @@ import { AuthGuard } from "@/components/auth/auth-guard";
 import { useAuth } from "@/context/auth-context";
 import { fetchResultsByCompanyAction } from "@/actions/results";
 import { ApplicationStatusBadge, ApprovedByLine } from "@/components/shared/status-badge";
-import { isPending } from "@/lib/application-status";
+import { isPending, submissionAttribution } from "@/lib/application-status";
 import { PageLoading } from "@/components/shared/page-loading";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -137,6 +137,11 @@ function PortalContent() {
                     <div className="flex flex-col items-start gap-1">
                       <ApplicationStatusBadge result={submission} />
                       <ApprovedByLine result={submission} />
+                      {submission.submissionSource === "specialist" && (
+                        <p className="text-xs text-muted-foreground">
+                          {submissionAttribution(submission)}
+                        </p>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground">

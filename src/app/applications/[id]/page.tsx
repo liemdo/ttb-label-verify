@@ -3,7 +3,9 @@ import { fetchResultByIdAction } from "@/actions/results";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import { AnalystView } from "./analyst-view";
+import { AnalystView } from "@/components/results/analyst-view";
+import { ReviewWorkspace } from "@/components/results/review-workspace";
+import { brandForHeading } from "@/lib/brand";
 
 export const dynamic = "force-dynamic";
 
@@ -21,22 +23,20 @@ export default async function ApplicationDetailPage({
 
   return (
     <AuthGuard>
-      <div
-        data-detail-workspace
-        className="h-full min-h-0 overflow-hidden flex flex-col gap-4 p-6 max-w-[90rem] mx-auto"
-      >
-        <div className="flex items-center gap-4 shrink-0">
-          <Link href="/applications" className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors border border-border bg-card">
+      <ReviewWorkspace
+        title="Application Details"
+        subtitle={`Detailed analyst view for ${brandForHeading(result)}`}
+        leading={
+          <Link
+            href="/applications"
+            className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors border border-border bg-card"
+          >
             <ChevronLeft className="h-5 w-5" />
           </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Application Details</h1>
-            <p className="text-muted-foreground mt-1">Detailed analyst view for {result.fileName}</p>
-          </div>
-        </div>
-
+        }
+      >
         <AnalystView initialResult={result} />
-      </div>
+      </ReviewWorkspace>
     </AuthGuard>
   );
 }

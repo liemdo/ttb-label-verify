@@ -1,55 +1,63 @@
 # AI-Powered Alcohol Label Verification App
 
-A proof-of-concept compliance tool for the TTB (Alcohol and Tobacco Tax and Trade Bureau) to automate the verification of alcohol labels against application data and federal regulations.
+A proof-of-concept for TTB label review: match a submitted label image to application data, then let a specialist approve or reject with judgment.
 
-This prototype demonstrates how AI vision can reduce manual data entry verification while empowering compliance agents with tools for judgment, override, and offline processing.
+Live prototype: [https://ttb-label-verify-git-main-realliemdo.vercel.app/](https://ttb-label-verify-git-main-realliemdo.vercel.app/)
 
 ## Key Features
 
-- **AI Vision (OpenAI GPT-4o)**: High-accuracy extraction of label fields, handling curved text, bad lighting, and glare.
-- **Offline OCR (Tesseract.js)**: A secure, firewall-friendly fallback mode that runs entirely in the browser without sending images to external APIs.
-- **Government Warning Diff Engine**: Character-by-character red/green highlighting to instantly spot deviations in the mandatory health warning.
-- **Batch Processing**: Handle peak-season workloads with up to 300 labels processed simultaneously.
-- **Power User Tools**: Global keyboard shortcuts, Quick Approve/Reject actions, and a time-saved calculator.
-- **Agent Judgment**: Manual override system with required reasoning, plus free-form agent notes per verification.
+- **Application vs label matching**: Specialists enter application fields (brand, class/type, ABV, net contents, producer) so the checker compares the form to the artwork, not just reads the bottle.
+- **AI Vision (OpenAI GPT-4o)**: Extracts label fields, including curved text and imperfect photos when the model can still read them.
+- **Offline OCR (Tesseract.js)**: Browser-only fallback when a firewall blocks cloud APIs.
+- **Government warning**: Word-for-word wording plus an ALL CAPS `GOVERNMENT WARNING:` header, with a character diff. Bold type and minimum type size are left as an agent visual check.
+- **Batch processing**: Up to 300 images, processed a few at a time. Failed files are listed instead of dropped silently.
+- **Review tools**: Approve or reject from one footer, field overrides with a reason, agent notes, keyboard shortcuts (`A`, `R`, `O`, `N`).
+- **Applicant portal**: Companies can submit labels; specialists see an applicants directory with contacts.
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 18+
-- [OpenAI API Key](https://platform.openai.com/api-keys) (for AI Mode)
+- A [Neon](https://neon.tech) Postgres database
+- [OpenAI API key](https://platform.openai.com/api-keys) (for AI mode)
+- [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) token (for label images)
 
 ### Installation
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd tth-rgb
-   ```
+1. Clone the repository and install dependencies:
 
-2. Install dependencies:
    ```bash
    npm install
    ```
 
-3. Configure Environment Variables:
-   Create a `.env.local` file in the root directory:
+2. Create `.env.local`:
+
    ```bash
    OPENAI_API_KEY=sk-your-openai-api-key
+   DATABASE_URL=postgresql://user:password@endpoint.neon.tech/neondb?sslmode=require
+   BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...
    ```
-   *Note: If you don't set this, you can also enter the API key directly in the app's Settings page.*
 
-4. Run the development server:
+   You can also paste an OpenAI key on the in-app Settings page.
+
+3. Apply the schema:
+
+   ```bash
+   npx drizzle-kit push
+   ```
+
+4. Start the app:
+
    ```bash
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. Open [http://localhost:3000](http://localhost:3000). Sign in as a specialist (for example Sarah Chen) or an applicant company.
+
+Do not run `npm run db:seed` unless you intend to replace demo data.
 
 ## Documentation
-
-For a detailed walkthrough, architecture decisions, and notes mapping features to stakeholder feedback, please see the `docs/` folder:
 
 - [Quick Start Guide](docs/start.md)
 - [Architecture & Tech Stack](docs/architecture.md)
@@ -58,14 +66,18 @@ For a detailed walkthrough, architecture decisions, and notes mapping features t
 
 ## Tech Stack
 
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 16 (App Router), React 19
 - **Language**: TypeScript
-- **Styling**: Tailwind CSS + shadcn/ui
+- **Styling**: Tailwind CSS v4 + shadcn/ui
 - **AI/Vision**: OpenAI API (gpt-4o)
 - **Offline OCR**: Tesseract.js (WebAssembly)
+- **Database**: Neon Postgres via Drizzle ORM
+- **Images**: Vercel Blob (private store)
 
-## Deployment
+## Honest limits
 
-The easiest way to deploy this Next.js app is to use the [Vercel Platform](https://vercel.com/new).
-
-When deploying, ensure you add `OPENAI_API_KEY` to your environment variables in the Vercel dashboard.
+- Extraction often takes longer than Sarah’s ~5 second bar. Processing time is shown; times over 5s are flagged. There is no hard abort.
+- Batch is concurrent (4 at a time), not 300 simultaneous API calls.
+- Image quality checks resolution and file size, not glare or camera angle.
+- Age statements, appellations, vintage, formula approval, and type size are documented on TTB Guidelines but not auto-checked.
+- Auth is a demo session in `sessionStorage`, not real SSO.

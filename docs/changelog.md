@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2026-09-14] - Original-brief gap fixes
+
+### Changed
+- Specialist Verify defaults to **comparing application data** to the label. Skip comparison is opt-out.
+- Approve is blocked only by **fail** and **warning** fields. Optional `not_checked` fields (for example country of origin on a domestic label) no longer force Reject.
+- Batch verification runs **4 files at a time**, surfaces per-file errors, and links each success to the full application review. CSV export includes failures.
+- Brand/class/producer matching uses **Levenshtein** similarity after normalize.
+- Image quality is checked for every uploaded file (in small chunks), not only the first five in a batch.
+- README and docs updated for Next.js 16, Neon, Blob, current navigation, the live Vercel URL, and honest limits (no bold/type-size check, 5s SLA shown not enforced).
+
+### Added
+- `O` keyboard shortcut opens override for the first blocking field.
+- Processing times over 5 seconds are flagged on the time-saved indicator.
+
 ## [2026-09-09] - Initial Prototype Release
 
 ### Added

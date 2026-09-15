@@ -104,9 +104,13 @@ function GuidelinesContent() {
             </div>
             <ul className="text-xs text-muted-foreground space-y-1.5 list-disc list-inside">
               <li>Must be exactly as shown above</li>
-              <li>"GOVERNMENT WARNING:" must be all caps and bold</li>
+              <li>&ldquo;GOVERNMENT WARNING:&rdquo; must be all caps and bold</li>
               <li>Must appear on a contrasting background</li>
             </ul>
+            <p className="text-[11px] text-muted-foreground mt-3 leading-relaxed">
+              This tool checks wording and that the header is ALL CAPS. Bold type,
+              minimum type size, and contrast are still a visual check for the agent.
+            </p>
           </Card>
 
           {/* Formatting Rules */}

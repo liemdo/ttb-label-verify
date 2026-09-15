@@ -2,9 +2,10 @@ import { GOVERNMENT_WARNING_TEXT } from "@/lib/constants";
 import type { VerificationStatus } from "@/types";
 
 /**
- * Normalize a string for comparison: lowercase, collapse whitespace, remove extra punctuation.
+ * Normalize a string for comparison: lowercase, collapse whitespace, unify quotes.
+ * Labels often print the government warning in all caps; this treats that as the same text.
  */
-function normalize(str: string): string {
+export function normalizeForCompare(str: string): string {
   return str
     .toLowerCase()
     .replace(/['']/g, "'")
@@ -13,31 +14,53 @@ function normalize(str: string): string {
     .trim();
 }
 
-/**
- * Calculate similarity between two strings (0-1) using Levenshtein-inspired approach.
- */
+function normalize(str: string): string {
+  return normalizeForCompare(str);
+}
+
+/** TTB cares about mandated wording, not whether the body is mixed case or all caps. */
+export function governmentWarningWording(str: string): string {
+  return normalizeForCompare(str)
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function levenshtein(a: string, b: string): number {
+  const rows = a.length + 1;
+  const cols = b.length + 1;
+  const dp = new Array<number>(cols);
+  for (let j = 0; j < cols; j++) dp[j] = j;
+
+  for (let i = 1; i < rows; i++) {
+    let prev = dp[0];
+    dp[0] = i;
+    for (let j = 1; j < cols; j++) {
+      const current = dp[j];
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      dp[j] = Math.min(dp[j] + 1, dp[j - 1] + 1, prev + cost);
+      prev = current;
+    }
+  }
+
+  return dp[cols - 1];
+}
+
+/** Normalized edit similarity from 0–1. 1 is an exact match after normalize. */
 function similarity(a: string, b: string): number {
   const na = normalize(a);
   const nb = normalize(b);
   if (na === nb) return 1;
   if (na.length === 0 || nb.length === 0) return 0;
 
-  // Simple character-level similarity
   const maxLen = Math.max(na.length, nb.length);
-  let matches = 0;
-  const shorter = na.length <= nb.length ? na : nb;
-  const longer = na.length > nb.length ? na : nb;
+  const score = 1 - levenshtein(na, nb) / maxLen;
 
-  for (let i = 0; i < shorter.length; i++) {
-    if (shorter[i] === longer[i]) matches++;
+  if (na.includes(nb) || nb.includes(na)) {
+    return Math.max(score, Math.min(na.length, nb.length) / maxLen);
   }
 
-  // Also check if one contains the other
-  if (longer.includes(shorter) || shorter.includes(longer)) {
-    return Math.max(matches / maxLen, shorter.length / longer.length);
-  }
-
-  return matches / maxLen;
+  return score;
 }
 
 /**
@@ -186,9 +209,9 @@ export function validateNetContents(
 }
 
 /**
- * Validate government warning: STRICT match.
- * "GOVERNMENT WARNING:" must be in all caps.
- * The rest of the text must match exactly (whitespace-normalized).
+ * TTB (27 CFR 16.21–16.22): the words "GOVERNMENT WARNING" must be in capital
+ * letters. The rest of the statement must use the mandated wording and be
+ * legible — mixed case or all caps are both acceptable.
  */
 export function validateGovernmentWarning(
   extracted: string | null
@@ -197,10 +220,8 @@ export function validateGovernmentWarning(
     return { status: "fail", notes: "Government warning statement not found on label" };
   }
 
-  // Check if "GOVERNMENT WARNING:" is in all caps
   const headerMatch = extracted.match(/GOVERNMENT\s+WARNING\s*:/);
   if (!headerMatch) {
-    // Check if it exists but not in caps
     const lowerMatch = extracted.match(/government\s+warning\s*:/i);
     if (lowerMatch) {
       return {
@@ -215,20 +236,18 @@ export function validateGovernmentWarning(
     };
   }
 
-  // Normalize both texts for comparison
-  const normalizedExtracted = normalize(extracted);
-  const normalizedExpected = normalize(GOVERNMENT_WARNING_TEXT);
-
-  if (normalizedExtracted === normalizedExpected) {
-    return { status: "pass", notes: "Government warning matches exactly" };
+  if (governmentWarningWording(extracted) === governmentWarningWording(GOVERNMENT_WARNING_TEXT)) {
+    return {
+      status: "pass",
+      notes: "Mandated wording is present. TTB requires the header in all caps; the body may be mixed case or all caps.",
+    };
   }
 
-  // Check similarity for near-matches
   const sim = similarity(extracted, GOVERNMENT_WARNING_TEXT);
   if (sim >= 0.95) {
     return {
       status: "warning",
-      notes: `Government warning is very close but not exact (${Math.round(sim * 100)}% match). Minor differences detected.`,
+      notes: `Government warning is very close but not exact (${Math.round(sim * 100)}% match). Minor wording differences detected.`,
     };
   }
 

@@ -19,6 +19,8 @@ export interface Applicant {
   companyName: string;
   contactName: string;
   role: string;
+  phone: string;
+  email: string;
   initials: string;
   color: string;
 }

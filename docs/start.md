@@ -1,69 +1,83 @@
 # Quick Start Guide
 
-Welcome to the AI-Powered Alcohol Label Verification App prototype.
+Welcome to the AI-Powered Alcohol Label Verification prototype.
+
+Live app: [https://ttb-label-verify-git-main-realliemdo.vercel.app/](https://ttb-label-verify-git-main-realliemdo.vercel.app/)
 
 ## Setup & Running Locally
 
 1. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
-2. **Configure Environment Variables:**
-   Create a `.env.local` file in the root directory and add your API keys and database URL:
+2. **Configure environment variables** in `.env.local`:
+
    ```env
    OPENAI_API_KEY=sk-your-openai-api-key
    DATABASE_URL=postgresql://user:password@endpoint.neon.tech/neondb?sslmode=require
+   BLOB_READ_WRITE_TOKEN=vercel_blob_rw_...
    ```
-   *(Alternatively, you can enter the key directly in the app's Settings page).*
 
-3. **Push the Database Schema:**
-   Ensure your Neon database is running and apply the schema:
+   You can also enter the OpenAI key on the Settings page.
+
+3. **Push the database schema:**
+
    ```bash
    npx drizzle-kit push
    ```
 
 4. **Start the development server:**
+
    ```bash
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. Open [http://localhost:3000](http://localhost:3000).
+
+Do not run `npm run db:seed` unless you intend to replace existing demo rows.
 
 ## Walkthrough
 
 ### 1. Login
-Select an agent profile. We recommend **Sarah Chen** (Supervisor) or **Dave Morrison** (Senior Agent).
 
-*(Screenshot placeholder: Login Screen)*
+Pick Sarah Chen (specialist) or Oak Barrel Distilling Co. (applicant). Both appear on the same login page. This is fake auth for the prototype.
 
 ### 2. Configure Settings
-Navigate to **Settings** in the sidebar.
-- Ensure **AI Vision (OpenAI)** is selected.
-- If you didn't set `.env.local`, paste your API key here and click **Save**.
 
-### 3. Verify a Label
-Navigate to **Verify Label**.
-1. Drag and drop a label image.
-2. (Optional) Enter expected application data in the form on the right (e.g., Brand Name, Alcohol Content).
-3. Click **Run Verification**.
+Open **Settings**. Use **AI Vision (OpenAI)** unless you need the offline Tesseract fallback.
 
-*(Screenshot placeholder: Verify Screen - Upload State)*
+### 3. Verify a Label (specialist)
+
+Open **Verify Label**.
+
+1. Drop a label image.
+2. Choose the submitting company (and contact if it is a new company).
+3. Fill the **application data** fields so the tool can match form vs label. Skip comparison only if you do not have those values.
+4. Click **Run Verification**.
 
 ### 4. Review Results
-- Notice the **Time Saved** metric at the top.
-- Review the **Field Checklist**. Green indicates a match, red indicates a failure.
-- Look at the **Government Warning** section to see character-by-character diffs if the warning is incorrect.
-- Click the **pencil icon** next to a field to manually override the AI's decision.
-- Use the **Quick Approve** button (or press `A`) if everything looks good.
 
-*(Screenshot placeholder: Verify Screen - Results State)*
+- Check the field list. Green is a match; red/amber needs a decision.
+- Country of origin left blank on a domestic product does not block Approve.
+- Fails and warnings must be overridden or the application is rejected.
+- Press `O` to override the first blocking field, `A` to approve when clear, `R` to reject when blocked.
+- Government warning: wording + ALL CAPS header are checked. Bold/contrast is a visual check.
 
 ### 5. Batch Processing
-1. On the Verify page, click the **Batch Upload** toggle.
-2. Drop multiple images (up to 300).
-3. Click **Verify X Labels**.
-4. Review the summary list, expand individual rows, or export to CSV.
 
-### 6. Review Guidelines
-Navigate to **TTB Guidelines** to see the reference material the AI is using to make its decisions.
+1. Toggle **Batch Upload**.
+2. Drop up to 300 images. They run a few at a time (not all at once).
+3. Failed files are listed with the error. Successful rows link to the full application review.
+4. Export CSV includes both successes and failures.
+
+### 6. Applicants and queue
+
+- **Applications** is the review queue.
+- **Applicants** lists companies with contact name, phone, email, and pending/approved/rejected counts.
+- Applicant users submit from **Portal**; they confirm what the AI read before filing.
+
+### 7. Guidelines
+
+**TTB Guidelines** is the reference the rules engine uses (spirits, wine, beer). Extra rules such as age statements and type size are documented there, not auto-enforced.

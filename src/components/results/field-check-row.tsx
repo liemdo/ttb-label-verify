@@ -12,6 +12,10 @@ interface FieldCheckRowProps {
 }
 
 export function FieldCheckRow({ field, onOverride }: FieldCheckRowProps) {
+  const extracted = field.extractedValue?.trim() || "";
+  const expected = field.expectedValue?.trim() || "";
+  const showExpected = expected.length > 0 && expected !== extracted;
+
   return (
     <div
       className={`rounded-lg border px-4 py-3 transition-colors space-y-2.5 ${
@@ -73,7 +77,7 @@ export function FieldCheckRow({ field, onOverride }: FieldCheckRowProps) {
           </span>
         </div>
 
-        {field.expectedValue && (
+        {showExpected && (
           <div className="text-sm leading-relaxed">
             <span className="text-muted-foreground text-xs">Expected: </span>
             <span className="text-muted-foreground">{field.expectedValue}</span>

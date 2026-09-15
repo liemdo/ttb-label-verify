@@ -11,22 +11,22 @@ import {
   LayoutDashboard,
   ScanSearch,
   BookOpen,
-  History,
   Settings,
   LogOut,
   Shield,
   Cpu,
   Bot,
   FolderOpen,
+  Building2,
   Upload,
 } from "lucide-react";
 
 const specialistNav = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/applications", label: "Applications", icon: FolderOpen },
+  { href: "/applicants", label: "Applicants", icon: Building2 },
   { href: "/verify", label: "Verify Label", icon: ScanSearch },
   { href: "/guidelines", label: "TTB Guidelines", icon: BookOpen },
-  { href: "/history", label: "Review History", icon: History },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -118,7 +118,7 @@ export function AppSidebar() {
       {/* Profile */}
       <div className="px-3 py-4 border-t border-sidebar-border space-y-3">
         <div className="relative flex items-center gap-2">
-          <ThemeToggle className="flex-1 justify-start" />
+          <ThemeToggle className="flex-1" />
           {isSpecialist && <KeyboardHints />}
         </div>
         <div className="flex items-center gap-3 px-2">

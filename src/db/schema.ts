@@ -4,6 +4,10 @@ import type { LabelField } from "@/types";
 export const companies = pgTable("companies", {
   id: text("id").primaryKey(),
   name: text("name").notNull().unique(),
+  contactName: text("contact_name"),
+  contactRole: text("contact_role"),
+  contactPhone: text("contact_phone"),
+  contactEmail: text("contact_email"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

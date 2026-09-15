@@ -1,11 +1,17 @@
 import type { DiffSegment } from "@/types";
+import { governmentWarningWording, normalizeForCompare } from "@/lib/validators";
 
 /**
- * Compute a character-level diff between two strings.
- * Uses a simple LCS-based approach suitable for short texts like government warnings.
+ * Word-level diff for short texts like government warnings.
+ * Case, whitespace, and punctuation are ignored for matching so an all-caps
+ * label is not marked as a mismatch against the mixed-case mandated text.
  */
 export function computeDiff(expected: string, actual: string): DiffSegment[] {
-  if (expected === actual) {
+  if (
+    expected === actual ||
+    normalizeForCompare(expected) === normalizeForCompare(actual) ||
+    governmentWarningWording(expected) === governmentWarningWording(actual)
+  ) {
     return [{ type: "equal", text: expected }];
   }
 
@@ -17,9 +23,8 @@ export function computeDiff(expected: string, actual: string): DiffSegment[] {
     return [{ type: "added", text: actual }];
   }
 
-  // Word-level diff for better readability
-  const expectedWords = tokenize(expected);
-  const actualWords = tokenize(actual);
+  const expectedWords = tokenize(expected.replace(/\s+/g, " ").trim());
+  const actualWords = tokenize(actual.replace(/\s+/g, " ").trim());
   const lcs = longestCommonSubsequence(expectedWords, actualWords);
 
   const segments: DiffSegment[] = [];
@@ -31,7 +36,7 @@ export function computeDiff(expected: string, actual: string): DiffSegment[] {
     if (li < lcs.length) {
       // Add removed words (in expected but not in LCS)
       let removedText = "";
-      while (ei < expectedWords.length && expectedWords[ei] !== lcs[li]) {
+      while (ei < expectedWords.length && !tokensMatch(expectedWords[ei], lcs[li])) {
         removedText += expectedWords[ei];
         ei++;
       }
@@ -41,7 +46,7 @@ export function computeDiff(expected: string, actual: string): DiffSegment[] {
 
       // Add added words (in actual but not in LCS)
       let addedText = "";
-      while (ai < actualWords.length && actualWords[ai] !== lcs[li]) {
+      while (ai < actualWords.length && !tokensMatch(actualWords[ai], lcs[li])) {
         addedText += actualWords[ai];
         ai++;
       }
@@ -82,6 +87,10 @@ export function computeDiff(expected: string, actual: string): DiffSegment[] {
   return mergeSegments(segments);
 }
 
+function tokensMatch(a: string, b: string): boolean {
+  return a === b || a.toLowerCase() === b.toLowerCase();
+}
+
 /** Tokenize text into words while preserving spaces */
 function tokenize(text: string): string[] {
   const tokens: string[] = [];
@@ -111,7 +120,7 @@ function longestCommonSubsequence(a: string[], b: string[]): string[] {
 
   for (let i = 1; i <= m; i++) {
     for (let j = 1; j <= n; j++) {
-      if (a[i - 1] === b[j - 1]) {
+      if (tokensMatch(a[i - 1], b[j - 1])) {
         dp[i][j] = dp[i - 1][j - 1] + 1;
       } else {
         dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
@@ -124,7 +133,7 @@ function longestCommonSubsequence(a: string[], b: string[]): string[] {
   let i = m;
   let j = n;
   while (i > 0 && j > 0) {
-    if (a[i - 1] === b[j - 1]) {
+    if (tokensMatch(a[i - 1], b[j - 1])) {
       result.unshift(a[i - 1]);
       i--;
       j--;

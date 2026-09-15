@@ -16,12 +16,20 @@ export function AgentSelector() {
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
+    <div className="grid grid-cols-1 gap-4">
       {agents.map((agent) => (
         <Card
           key={agent.id}
+          role="button"
+          tabIndex={0}
           className="relative overflow-hidden cursor-pointer group border-border bg-muted/50 hover:bg-accent/50 hover:border-ring transition-all duration-200 p-0"
           onClick={() => handleSelect(agent)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              handleSelect(agent);
+            }
+          }}
         >
           <div className="p-6">
             <div className="flex items-start gap-4">

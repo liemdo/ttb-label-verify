@@ -28,18 +28,79 @@ const COMPANIES = [
   "Apex Whiskey Co."
 ];
 
-/** Contacts for the companies that have applicant portal logins. */
+/** Contact for the company that has an applicant portal login. */
 const PORTAL_CONTACTS: Record<string, string> = {
   "Oak Barrel Distilling Co.": "Ruth Alvarez",
-  "Napa Valley Vintners": "Thomas Reed",
-  "Crafty Brews LLC": "Priya Raman",
-  "Highland Spirits": "Callum Fraser",
+};
+
+const COMPANY_DIRECTORY: Record<
+  string,
+  { contactName: string; contactRole: string; phone: string; email: string }
+> = {
+  "Oak Barrel Distilling Co.": {
+    contactName: "Ruth Alvarez",
+    contactRole: "Compliance Contact",
+    phone: "(502) 555-0142",
+    email: "ruth.alvarez@oakbarreldistilling.com",
+  },
+  "Napa Valley Vintners": {
+    contactName: "Thomas Reed",
+    contactRole: "Label Coordinator",
+    phone: "(707) 555-0188",
+    email: "thomas.reed@napavalleyvintners.com",
+  },
+  "Crafty Brews LLC": {
+    contactName: "Priya Raman",
+    contactRole: "Brand Manager",
+    phone: "(303) 555-0114",
+    email: "priya.raman@craftybrews.com",
+  },
+  "Highland Spirits": {
+    contactName: "Callum Fraser",
+    contactRole: "Regulatory Affairs",
+    phone: "(859) 555-0160",
+    email: "callum.fraser@highlandspirits.com",
+  },
+  "Blue Mountain Brewery": {
+    contactName: "Nina Kowalski",
+    contactRole: "Brewery Operations",
+    phone: "(503) 555-0177",
+    email: "nina.kowalski@bluemountainbrewery.com",
+  },
+  "Apex Whiskey Co.": {
+    contactName: "Jordan Hale",
+    contactRole: "Compliance Contact",
+    phone: "(502) 555-0194",
+    email: "jordan.hale@apexwhiskey.com",
+  },
+  "Golden State Brewers": {
+    contactName: "Marcus Delgado",
+    contactRole: "Brand Manager",
+    phone: "(415) 555-0133",
+    email: "marcus.delgado@goldenstatebrewers.com",
+  },
+  "Riverstone Vineyards": {
+    contactName: "Claire Nguyen",
+    contactRole: "Label Coordinator",
+    phone: "(707) 555-0181",
+    email: "claire.nguyen@riverstonevineyards.com",
+  },
+  "Silver Fox Distillers": {
+    contactName: "Owen Briggs",
+    contactRole: "Regulatory Affairs",
+    phone: "(270) 555-0156",
+    email: "owen.briggs@silverfoxdistillers.com",
+  },
+  "Sonoma Coast Wineries": {
+    contactName: "Isabel Moreau",
+    contactRole: "Compliance Contact",
+    phone: "(707) 555-0129",
+    email: "isabel.moreau@sonomacoastwineries.com",
+  },
 };
 
 const AGENTS = [
-  { id: "agent-1", name: "Sarah Chen" },
-  { id: "agent-2", name: "Dave Morrison" },
-  { id: "agent-3", name: "Elena Rodriguez" }
+  { id: "sarah-chen", name: "Sarah Chen" },
 ];
 
 const BEVERAGE_TYPES = ["wine", "beer", "spirits"];
@@ -68,11 +129,18 @@ async function seed() {
 
   console.log(`Inserting ${COMPANIES.length} companies...`);
   await db.insert(schema.companies).values(
-    COMPANIES.map((name) => ({
-      id: `company-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
-      name,
-      createdAt: new Date(),
-    }))
+    COMPANIES.map((name) => {
+      const contact = COMPANY_DIRECTORY[name];
+      return {
+        id: `company-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+        name,
+        contactName: contact?.contactName ?? null,
+        contactRole: contact?.contactRole ?? null,
+        contactPhone: contact?.phone ?? null,
+        contactEmail: contact?.email ?? null,
+        createdAt: new Date(),
+      };
+    })
   );
 
   const resultsToInsert = [];
@@ -123,7 +191,43 @@ async function seed() {
   console.log("Database seed complete!");
 }
 
-seed().catch((err) => {
-  console.error("Seed failed:", err);
+/** Point reviewed specialist records at the single demo specialist login. */
+async function normalizeDemoLogins() {
+  console.log("Ensuring Oak Barrel Distilling Co. exists for the applicant login...");
+  await sql`
+    INSERT INTO companies (
+      id, name, contact_name, contact_role, contact_phone, contact_email, created_at
+    )
+    VALUES (
+      'company-oak-barrel-distilling-co',
+      'Oak Barrel Distilling Co.',
+      'Ruth Alvarez',
+      'Compliance Contact',
+      '(502) 555-0142',
+      'ruth.alvarez@oakbarreldistilling.com',
+      now()
+    )
+    ON CONFLICT (name) DO UPDATE SET
+      contact_name = excluded.contact_name,
+      contact_role = excluded.contact_role,
+      contact_phone = excluded.contact_phone,
+      contact_email = excluded.contact_email
+  `;
+
+  console.log("Normalizing specialist attribution to Sarah Chen...");
+  const updated = await sql`
+    UPDATE verification_results
+    SET agent_id = 'sarah-chen', agent_name = 'Sarah Chen'
+    WHERE agent_id <> 'unassigned'
+      AND coalesce(agent_name, '') <> 'Unassigned'
+    RETURNING id
+  `;
+  console.log(`Updated ${updated.length} reviewed application(s).`);
+}
+
+const normalizeOnly = process.argv.includes("--normalize-logins");
+
+(normalizeOnly ? normalizeDemoLogins() : seed()).catch((err) => {
+  console.error(normalizeOnly ? "Normalize failed:" : "Seed failed:", err);
   process.exit(1);
 });

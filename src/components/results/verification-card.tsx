@@ -11,6 +11,7 @@ import { FieldCheckRow } from "@/components/results/field-check-row";
 import { WarningDiffView } from "@/components/results/warning-diff-view";
 import { AgentNotes } from "@/components/results/agent-notes";
 import { LabelImageViewer } from "@/components/results/label-image-viewer";
+import { submissionAttribution } from "@/lib/application-status";
 
 interface VerificationCardProps {
   result: VerificationResult;
@@ -85,6 +86,8 @@ export function VerificationCard({
               timeSavedMs={result.timeSavedMs} 
               variant="inline"
             />
+            <span>•</span>
+            <span>{submissionAttribution(result)}</span>
           </div>
         </div>
         <div className="shrink-0 flex flex-col items-start sm:items-end gap-1.5">
@@ -135,7 +138,10 @@ export function VerificationCard({
                     </Button>
                   )}
                 </div>
-                <WarningDiffView extractedWarning={govWarningField.extractedValue} />
+                <WarningDiffView
+                  extractedWarning={govWarningField.extractedValue}
+                  status={govWarningField.status}
+                />
                 {govWarningField.override && (
                   <p className="text-xs text-primary mt-2">
                     Overridden by {govWarningField.override.agentName}

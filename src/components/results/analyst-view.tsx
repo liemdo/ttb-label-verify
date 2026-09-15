@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { VerificationCard } from "@/components/results/verification-card";
 import { OverrideDialog } from "@/components/results/override-dialog";
+import { ReviewDecisionFooter } from "@/components/results/review-decision-footer";
 import { Button } from "@/components/ui/button";
 import {
   updateNotesAction,
@@ -12,16 +13,23 @@ import {
 } from "@/actions/results";
 import { useResults } from "@/context/results-context";
 import { useAuth } from "@/context/auth-context";
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { ConfirmDeleteDialog } from "@/components/shared/confirm-delete-dialog";
 import { CompanyInfoDialog } from "@/components/results/company-info-dialog";
-import { isPending, unresolvedReviewFields } from "@/lib/application-status";
+import { isPending, unresolvedReviewFields, submissionAttribution } from "@/lib/application-status";
 import type { ApplicationStatus, FieldOverride, VerificationResult } from "@/types";
-import { Building2, CheckCircle2, Trash2, XCircle } from "lucide-react";
+import { Building2, Trash2 } from "lucide-react";
 
-export function AnalystView({ initialResult }: { initialResult: VerificationResult }) {
+export function AnalystView({
+  initialResult,
+  onDeleted,
+}: {
+  initialResult: VerificationResult;
+  onDeleted?: () => void;
+}) {
   const router = useRouter();
   const { agent } = useAuth();
-  const { deleteResult } = useResults();
+  const { deleteResult, updateResult } = useResults();
   const [result, setResult] = useState(initialResult);
   const [overrideField, setOverrideField] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -67,13 +75,14 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
         agentId: agent.id,
         agentName: agent.name,
       });
-      setResult((prev) => ({
-        ...prev,
+      const updates = {
         overallVerdict: decision,
-        reviewStatus: "reviewed",
+        reviewStatus: "reviewed" as const,
         agentId: agent.id,
         agentName: agent.name,
-      }));
+      };
+      setResult((prev) => ({ ...prev, ...updates }));
+      updateResult(result.id, updates);
       router.refresh();
     } catch (err) {
       console.error(err);
@@ -88,8 +97,12 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
     try {
       await deleteResult(result.id);
       setShowDeleteDialog(false);
-      router.push("/applications");
       router.refresh();
+      if (onDeleted) {
+        onDeleted();
+      } else {
+        router.push("/applications");
+      }
     } catch (err) {
       console.error(err);
       alert("Failed to delete application. Please try again.");
@@ -97,8 +110,40 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
     }
   };
 
-  const blockingFields = unresolvedReviewFields(result.fields);
-  const canApprove = blockingFields.length === 0;
+  const canApprove = unresolvedReviewFields(result.fields).length === 0;
+
+  useKeyboardShortcuts([
+    {
+      key: "a",
+      description: "Quick Approve",
+      action: () => {
+        if (isPending(result) && canApprove) {
+          void handleDecide("approved");
+        }
+      },
+    },
+    {
+      key: "r",
+      description: "Quick Reject",
+      action: () => {
+        if (isPending(result) && !canApprove) {
+          void handleDecide("rejected");
+        }
+      },
+    },
+    {
+      key: "o",
+      description: "Override Field",
+      action: () => {
+        if (!isPending(result) || overrideField) return;
+        const blocking = unresolvedReviewFields(result.fields);
+        const target =
+          blocking[0] ?? result.fields.find((field) => field.status !== "pass");
+        if (target) setOverrideField(target.fieldName);
+      },
+    },
+  ]);
+
   const activeField = result.fields.find((f) => f.fieldName === overrideField);
 
   return (
@@ -112,7 +157,11 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
           <CompanyInfoDialog
             companyName={result.companyName}
             submittedByName={result.submittedByName}
+            submissionSource={result.submissionSource}
           />
+          <p className="text-xs text-muted-foreground">
+            {submissionAttribution(result)}
+          </p>
         </div>
 
         <Button
@@ -134,47 +183,11 @@ export function AnalystView({ initialResult }: { initialResult: VerificationResu
           onOverrideField={setOverrideField}
           reviewFooter={
             isPending(result) ? (
-              <div className="flex flex-col gap-3">
-                {canApprove ? (
-                  <p className="text-sm text-foreground">
-                    All fields pass. This application can be approved.
-                  </p>
-                ) : (
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-foreground">
-                      {blockingFields.length}{" "}
-                      {blockingFields.length === 1 ? "field needs" : "fields need"}{" "}
-                      to be resolved to approve
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                      {blockingFields.map((field) => field.displayName).join(", ")}
-                    </p>
-                  </div>
-                )}
-                <Button
-                  type="button"
-                  onClick={() => handleDecide(canApprove ? "approved" : "rejected")}
-                  disabled={isDeciding !== null}
-                  className={
-                    canApprove
-                      ? "bg-emerald-600 hover:bg-emerald-700 text-white gap-2 w-full"
-                      : "bg-red-600 hover:bg-red-700 text-white gap-2 w-full"
-                  }
-                >
-                  {canApprove ? (
-                    <CheckCircle2 className="h-4 w-4" />
-                  ) : (
-                    <XCircle className="h-4 w-4" />
-                  )}
-                  {isDeciding
-                    ? canApprove
-                      ? "Approving..."
-                      : "Rejecting..."
-                    : canApprove
-                      ? "Approve"
-                      : "Reject"}
-                </Button>
-              </div>
+              <ReviewDecisionFooter
+                result={result}
+                onDecide={handleDecide}
+                isDeciding={isDeciding}
+              />
             ) : undefined
           }
         />

@@ -13,68 +13,107 @@ export const AGENTS: Agent[] = [
     initials: "SC",
     color: "#3B82F6",
   },
-  {
-    id: "dave-morrison",
-    name: "Dave Morrison",
-    role: "Senior Compliance Agent",
-    department: "Spirits & Wine Division",
-    initials: "DM",
-    color: "#10B981",
-  },
-  {
-    id: "jenny-park",
-    name: "Jenny Park",
-    role: "Junior Compliance Agent",
-    department: "General Review",
-    initials: "JP",
-    color: "#8B5CF6",
-  },
-  {
-    id: "marcus-williams",
-    name: "Marcus Williams",
-    role: "IT Systems Administrator",
-    department: "Technology Services",
-    initials: "MW",
-    color: "#F59E0B",
-  },
 ];
 
 // ============================================================
 // Predefined Applicants (companies submitting labels)
 // ============================================================
 
+export interface CompanyContactInfo {
+  contactName: string;
+  contactRole: string;
+  phone: string;
+  email: string;
+}
+
+/** Directory contacts for seeded / demo companies. */
+export const COMPANY_CONTACTS: Record<string, CompanyContactInfo> = {
+  "Oak Barrel Distilling Co.": {
+    contactName: "Ruth Alvarez",
+    contactRole: "Compliance Contact",
+    phone: "(502) 555-0142",
+    email: "ruth.alvarez@oakbarreldistilling.com",
+  },
+  "Napa Valley Vintners": {
+    contactName: "Thomas Reed",
+    contactRole: "Label Coordinator",
+    phone: "(707) 555-0188",
+    email: "thomas.reed@napavalleyvintners.com",
+  },
+  "Crafty Brews LLC": {
+    contactName: "Priya Raman",
+    contactRole: "Brand Manager",
+    phone: "(303) 555-0114",
+    email: "priya.raman@craftybrews.com",
+  },
+  "Highland Spirits": {
+    contactName: "Callum Fraser",
+    contactRole: "Regulatory Affairs",
+    phone: "(859) 555-0160",
+    email: "callum.fraser@highlandspirits.com",
+  },
+  "Blue Mountain Brewery": {
+    contactName: "Nina Kowalski",
+    contactRole: "Brewery Operations",
+    phone: "(503) 555-0177",
+    email: "nina.kowalski@bluemountainbrewery.com",
+  },
+  "Apex Whiskey Co.": {
+    contactName: "Jordan Hale",
+    contactRole: "Compliance Contact",
+    phone: "(502) 555-0194",
+    email: "jordan.hale@apexwhiskey.com",
+  },
+  "Golden State Brewers": {
+    contactName: "Marcus Delgado",
+    contactRole: "Brand Manager",
+    phone: "(415) 555-0133",
+    email: "marcus.delgado@goldenstatebrewers.com",
+  },
+  "Harbor Light Distilling": {
+    contactName: "Elena Vasquez",
+    contactRole: "Compliance Contact",
+    phone: "(207) 555-0168",
+    email: "elena.vasquez@harborlightdistilling.com",
+  },
+  "Riverstone Vineyards": {
+    contactName: "Claire Nguyen",
+    contactRole: "Label Coordinator",
+    phone: "(707) 555-0181",
+    email: "claire.nguyen@riverstonevineyards.com",
+  },
+  "Silver Fox Distillers": {
+    contactName: "Owen Briggs",
+    contactRole: "Regulatory Affairs",
+    phone: "(270) 555-0156",
+    email: "owen.briggs@silverfoxdistillers.com",
+  },
+  "Sonoma Coast Wineries": {
+    contactName: "Isabel Moreau",
+    contactRole: "Compliance Contact",
+    phone: "(707) 555-0129",
+    email: "isabel.moreau@sonomacoastwineries.com",
+  },
+};
+
+export function companyContactFallback(companyName: string) {
+  const trimmed = companyName.trim();
+  return (
+    COMPANY_CONTACTS[trimmed] ??
+    Object.entries(COMPANY_CONTACTS).find(
+      ([name]) => name.toLowerCase() === trimmed.toLowerCase()
+    )?.[1]
+  );
+}
+
 export const APPLICANTS: Applicant[] = [
   {
     id: "oak-barrel-distilling",
     companyName: "Oak Barrel Distilling Co.",
-    contactName: "Ruth Alvarez",
-    role: "Compliance Contact",
+    ...COMPANY_CONTACTS["Oak Barrel Distilling Co."],
+    role: COMPANY_CONTACTS["Oak Barrel Distilling Co."].contactRole,
     initials: "OB",
     color: "#B45309",
-  },
-  {
-    id: "napa-valley-vintners",
-    companyName: "Napa Valley Vintners",
-    contactName: "Thomas Reed",
-    role: "Label Coordinator",
-    initials: "NV",
-    color: "#9333EA",
-  },
-  {
-    id: "crafty-brews",
-    companyName: "Crafty Brews LLC",
-    contactName: "Priya Raman",
-    role: "Brand Manager",
-    initials: "CB",
-    color: "#0D9488",
-  },
-  {
-    id: "highland-spirits",
-    companyName: "Highland Spirits",
-    contactName: "Callum Fraser",
-    role: "Regulatory Affairs",
-    initials: "HS",
-    color: "#2563EB",
   },
 ];
 
@@ -155,6 +194,8 @@ export const ACCEPTED_IMAGE_TYPES = {
 export const MAX_IMAGE_SIZE_MB = 10;
 export const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
 export const MAX_BATCH_SIZE = 300;
+/** How many labels to extract in parallel during a batch run. */
+export const BATCH_CONCURRENCY = 4;
 
 // ============================================================
 // Time estimation

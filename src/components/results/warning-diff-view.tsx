@@ -2,13 +2,16 @@
 
 import { GOVERNMENT_WARNING_TEXT } from "@/lib/constants";
 import { computeDiff } from "@/lib/diff";
-import type { DiffSegment } from "@/types";
+import { validateGovernmentWarning } from "@/lib/validators";
+import type { DiffSegment, VerificationStatus } from "@/types";
 
 interface WarningDiffViewProps {
   extractedWarning: string | null;
+  /** Field status from verification — keeps this panel in sync with Approve. */
+  status?: VerificationStatus;
 }
 
-export function WarningDiffView({ extractedWarning }: WarningDiffViewProps) {
+export function WarningDiffView({ extractedWarning, status }: WarningDiffViewProps) {
   if (!extractedWarning) {
     return (
       <div className="rounded-lg border border-red-500/30 bg-red-500/5 p-4">
@@ -28,24 +31,35 @@ export function WarningDiffView({ extractedWarning }: WarningDiffViewProps) {
     );
   }
 
-  const segments = computeDiff(GOVERNMENT_WARNING_TEXT, extractedWarning);
-  const isExactMatch = segments.length === 1 && segments[0].type === "equal";
+  const validation = validateGovernmentWarning(extractedWarning);
+  const isMatch = status === "pass" || validation.status === "pass";
 
   return (
     <div
       className={`rounded-lg border p-4 ${
-        isExactMatch
+        isMatch
           ? "border-emerald-500/30 bg-emerald-500/5"
           : "border-red-500/30 bg-red-500/5"
       }`}
     >
-      <p className={`text-sm font-medium mb-3 ${isExactMatch ? "text-emerald-400" : "text-red-400"}`}>
-        {isExactMatch
-          ? "✓ Government Warning Matches Exactly"
+      <p className={`text-sm font-medium mb-3 ${isMatch ? "text-emerald-400" : "text-red-400"}`}>
+        {isMatch
+          ? "✓ Government Warning Matches"
           : "✗ Government Warning Differences Detected"}
       </p>
 
-      {!isExactMatch && (
+      {isMatch ? (
+        <>
+          <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+            TTB requires &ldquo;GOVERNMENT WARNING:&rdquo; in all caps. The rest of the
+            mandated wording must match and be legible — mixed case or all caps
+            are both acceptable. Bold type and contrast are a visual check.
+          </p>
+          <p className="text-xs text-muted-foreground leading-relaxed p-3 bg-muted rounded border border-border">
+            {extractedWarning}
+          </p>
+        </>
+      ) : (
         <>
           <div className="flex gap-4 text-[10px] text-muted-foreground mb-2">
             <span className="flex items-center gap-1">
@@ -59,7 +73,7 @@ export function WarningDiffView({ extractedWarning }: WarningDiffViewProps) {
           </div>
 
           <div className="p-3 bg-muted rounded border border-border text-sm leading-relaxed">
-            {segments.map((seg: DiffSegment, i: number) => (
+            {computeDiff(GOVERNMENT_WARNING_TEXT, extractedWarning).map((seg: DiffSegment, i: number) => (
               <span
                 key={i}
                 className={
@@ -75,12 +89,6 @@ export function WarningDiffView({ extractedWarning }: WarningDiffViewProps) {
             ))}
           </div>
         </>
-      )}
-
-      {isExactMatch && (
-        <p className="text-xs text-muted-foreground leading-relaxed p-3 bg-muted rounded border border-border">
-          {GOVERNMENT_WARNING_TEXT}
-        </p>
       )}
     </div>
   );

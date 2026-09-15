@@ -1,36 +1,47 @@
 # Design Notes & Assumptions
 
-This document explains the rationale behind key design decisions, mapping them directly to stakeholder feedback from the discovery sessions.
+This document explains the rationale behind key design decisions, mapping them to stakeholder feedback from the discovery sessions.
 
 ## Stakeholder Feedback to Feature Mapping
 
 ### Sarah Chen (Deputy Director)
-- **"My mother could figure out"**: Implemented large, touch-friendly cards, clear primary actions, and eliminated complex navigation.
-- **"Batch uploads (200-300)"**: Built a batch upload pipeline handling up to 300 images with progress tracking.
-- **"Needs to show value"**: Added a "Time Saved" calculator estimating manual vs. AI time, providing quantifiable metrics for leadership.
+
+- **"My mother could figure out"**: Large primary actions, a single Approve or Reject footer, and a table queue instead of hunting for buttons.
+- **"Batch uploads (200-300)"**: Batch upload up to 300 images, processed a few at a time with progress and per-file errors.
+- **"If we can't get results back in about 5 seconds"**: Processing time is displayed. Times over 5 seconds are flagged. There is no hard timeout, because aborting a nearly-finished OpenAI call would waste the work.
+- **"Matching" is the job**: Specialist Verify defaults to comparing application data to the label. Skip comparison is explicit.
 
 ### Dave Morrison (Senior Agent, 28 years)
-- **"Help me get through my queue faster"**: Implemented a "Quick Approve" / "Quick Reject" button group and global keyboard shortcuts (`A`, `R`, `N`).
-- **"There's nuance, you need judgment"**: Added a manual override system for AI decisions, requiring a logged reason. Added an "Agent Notes" textarea for qualitative observations.
-- **"STONE'S THROW vs Stone's Throw"**: Implemented case-insensitive fuzzy matching in `lib/validators.ts`.
+
+- **"Help me get through my queue faster"**: One decision button, keyboard shortcuts (`A`, `R`, `O`, `N`).
+- **"There's nuance, you need judgment"**: Override with a reason, plus agent notes. Approve is not blocked by optional fields the AI did not need to check.
+- **"STONE'S THROW vs Stone's Throw"**: Case-insensitive normalize, then Levenshtein similarity — not positional character matching.
 
 ### Jenny Park (Junior Agent, 8 months)
-- **"Government warning must be exact"**: Built a custom text diffing engine (`lib/diff.ts`) that visually highlights exact character additions/removals in red and green.
-- **"Checklist workflow"**: The UI presents results as a row-by-row checklist, mimicking her physical process. Added confidence bars so she knows where to focus her attention.
-- **"Bad image quality"**: Added a pre-processing image quality check (`lib/image-quality.ts`) to warn agents if an image is too blurry/low-res before wasting API calls.
+
+- **"Government warning must be exact"**: Wording compare plus ALL CAPS header, with a character diff.
+- **"All caps and bold"**: Caps are enforced. Bold and contrast cannot be read reliably from OCR, so they stay an agent visual check (called out on Guidelines and the warning panel).
+- **"Checklist workflow"**: Field rows with status and confidence.
+- **"Bad image quality"**: Pre-check for low resolution and tiny/huge files. Glare and camera angle are not measured; the OpenAI prompt asks the model to try anyway.
 
 ### Marcus Williams (IT Admin)
-- **"Network blocks outbound traffic"**: Added Tesseract.js as an offline fallback that runs entirely in the browser (WebAssembly). 
-- **"No sensitive data storage"**: State is persisted only to browser `localStorage`. No actual backend database is used for the prototype.
+
+- **"Network blocks outbound traffic"**: Tesseract.js in the browser, with a prompt to switch when OpenAI is unreachable.
+- **"No sensitive data" for the prototype**: Demo auth only. The app does store label images in Blob and company contacts (name, phone, email) so the applicants directory works. That is a documented trade-off for a usable demo, not a production privacy design.
+- **Standalone POC**: No COLA integration.
 
 ## Known Limitations & Trade-offs
 
-1. **Client-side Storage**: To keep this a standalone prototype, we use `localStorage`. In production, this would be a real database.
-2. **Fake Authentication**: The login system just sets a cookie/session object. It's for demonstrating multi-user flows, not actual security.
-3. **Tesseract Accuracy**: Tesseract struggles with complex label layouts, curved text on bottles, and low contrast. It is provided strictly as a fallback for strict firewall environments. OpenAI GPT-4o is significantly better at this task.
-4. **Confidence Scores (Tesseract)**: Tesseract's confidence scores are character-level averages and often misleading. OpenAI's confidence scores are simulated based on the model's self-assessment.
+1. **Demo auth**: Login stores a session object. Not real security.
+2. **5-second SLA**: Often missed with GPT-4o high-detail vision plus image upload. Shown, not enforced.
+3. **Tesseract accuracy**: Weak on curved bottle text and low contrast. Fallback only.
+4. **Formatting rules not auto-checked**: Type size, contrasting background, age statement, appellation, vintage, formula approval.
+5. **Wine/beer ABV exceptions**: Documented in Guidelines; the form still treats ABV as required when comparing.
+6. **Images only**: JPG, PNG, WebP. Not PDFs.
+7. **Applicant portal**: Extra vs the original brief. Applicants confirm AI reads rather than typing the full form first.
 
 ## Assumptions Made
 
-1. We assume the "Application Data" (expected values) would eventually come from the COLA database via an API. For this prototype, we provide a form to manually input the expected data to simulate the comparison.
-2. We assume agents are processing images (JPG/PNG), not PDFs.
+1. Application data would eventually come from COLA. Here, specialists type it (or applicants confirm what the AI read).
+2. Agents process still images, not PDFs or multi-page scans.
+3. Country of origin is required only for imports; a blank domestic field should not block Approve.

@@ -240,7 +240,7 @@ function SubmitLabelContent() {
             {qualityReports[files[0].name] && (
               <ImageQualityCheck report={qualityReports[files[0].name]} />
             )}
-            <FilePreview file={files[0]} onClear={clearFiles} disabled={isReviewing} />
+            <FilePreview file={files[0]} onClear={clearFiles} disabled={isReviewing} scanning={isReviewing} />
           </div>
 
           <div>

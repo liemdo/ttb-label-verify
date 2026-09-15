@@ -4,8 +4,13 @@ import { ApplicationsList } from "./applications-list";
 
 export const dynamic = "force-dynamic";
 
-export default async function ApplicationsPage() {
+export default async function ApplicationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ company?: string }>;
+}) {
   const results = await fetchResultsAction();
+  const { company } = await searchParams;
 
   return (
     <AuthGuard>
@@ -17,7 +22,10 @@ export default async function ApplicationsPage() {
           </p>
         </div>
 
-        <ApplicationsList initialResults={results} />
+        <ApplicationsList
+          initialResults={results}
+          initialCompany={company?.trim() || undefined}
+        />
       </div>
     </AuthGuard>
   );

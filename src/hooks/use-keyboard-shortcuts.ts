@@ -44,7 +44,7 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
 export const SHORTCUT_DEFINITIONS = [
   { key: "a", description: "Quick Approve" },
   { key: "r", description: "Quick Reject" },
-  { key: "n", description: "Next Label (batch)" },
-  { key: "o", description: "Override Field" },
+  { key: "n", description: "Verify Another" },
+  { key: "o", description: "Override first blocking field" },
   { key: "Escape", description: "Close Dialog" },
 ];

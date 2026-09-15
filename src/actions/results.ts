@@ -60,9 +60,9 @@ function toInsertValues(result: VerificationResult) {
 }
 
 function revalidateResultViews(id?: string) {
-  revalidatePath("/history");
   revalidatePath("/dashboard");
   revalidatePath("/applications");
+  revalidatePath("/applicants");
   revalidatePath("/portal");
   if (id) revalidatePath(`/applications/${id}`);
 }

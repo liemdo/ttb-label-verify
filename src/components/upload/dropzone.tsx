@@ -39,13 +39,18 @@ export function Dropzone({ onFilesSelected, isBatchMode, disabled }: DropzonePro
       }
 
       const qualityReports: Record<string, ImageQualityReport> = {};
-      
-      // Check quality for first file in single mode, or all in batch (might be slow, maybe just first few)
-      const filesToCheck = isBatchMode ? acceptedFiles.slice(0, 5) : acceptedFiles;
-      
-      for (const file of filesToCheck) {
-        const report = await checkImageQuality(file);
-        qualityReports[file.name] = report;
+      const chunkSize = 10;
+      for (let i = 0; i < acceptedFiles.length; i += chunkSize) {
+        const chunk = acceptedFiles.slice(i, i + chunkSize);
+        const reports = await Promise.all(
+          chunk.map(async (file) => {
+            const report = await checkImageQuality(file);
+            return [file.name, report] as const;
+          })
+        );
+        for (const [name, report] of reports) {
+          qualityReports[name] = report;
+        }
       }
 
       onFilesSelected(acceptedFiles, qualityReports);

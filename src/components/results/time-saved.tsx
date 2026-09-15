@@ -13,12 +13,19 @@ export function TimeSaved({ processingTimeMs, timeSavedMs, variant = "inline" }:
   const savedMinutes = timeSavedMs ? Math.floor(timeSavedMs / 60000) : 6;
   const savedSeconds = timeSavedMs ? Math.round((timeSavedMs % 60000) / 1000) : 55;
 
+  const overSla = processingTimeMs > 5000;
+
   if (variant === "card") {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-        <Zap className="h-4 w-4 text-emerald-400" />
-        <span className="text-sm text-emerald-300">
-          Processed in <strong>{processingSeconds}s</strong> — est.{" "}
+      <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${
+        overSla
+          ? "bg-amber-500/10 border-amber-500/20"
+          : "bg-emerald-500/10 border-emerald-500/20"
+      }`}>
+        <Zap className={`h-4 w-4 ${overSla ? "text-amber-400" : "text-emerald-400"}`} />
+        <span className={`text-sm ${overSla ? "text-amber-300" : "text-emerald-300"}`}>
+          Processed in <strong>{processingSeconds}s</strong>
+          {overSla ? " (over the 5s target)" : ""} — est.{" "}
           <strong>
             {savedMinutes}m {savedSeconds}s
           </strong>{" "}
@@ -32,6 +39,7 @@ export function TimeSaved({ processingTimeMs, timeSavedMs, variant = "inline" }:
     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
       <Clock className="h-3 w-3" />
       <span>{processingSeconds}s</span>
+      {overSla && <span className="text-amber-500">over 5s target</span>}
       {timeSavedMs && timeSavedMs > 0 && (
         <span className="text-emerald-500">
           (~{savedMinutes}m saved)

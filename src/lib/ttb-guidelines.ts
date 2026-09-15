@@ -1,4 +1,4 @@
-import type { TTBGuideline } from "@/types";
+import type { ApplicationData, TTBGuideline } from "@/types";
 
 export const TTB_GUIDELINES: Record<string, TTBGuideline> = {
   spirits: {
@@ -330,4 +330,24 @@ export function getRequiredFieldsForBeverage(
       return true;
     })
     .map((f) => f.field);
+}
+
+/** Warning text is mandated; specialists do not type it on the application form. */
+const NON_ENTERABLE_APPLICATION_FIELDS = new Set(["governmentWarning"]);
+
+/** Required application fields that are still blank when comparing form vs label. */
+export function missingRequiredApplicationFields(
+  data: ApplicationData,
+  beverageType: string
+): string[] {
+  const guideline = getGuidelineForBeverage(beverageType);
+  return guideline.requiredFields
+    .filter(
+      (f) =>
+        f.required &&
+        !f.onlyIf &&
+        !NON_ENTERABLE_APPLICATION_FIELDS.has(f.field)
+    )
+    .filter((f) => !data[f.field]?.trim())
+    .map((f) => f.displayName);
 }
