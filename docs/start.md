@@ -44,9 +44,13 @@ Do not run `npm run db:seed` unless you intend to replace existing demo rows.
 
 Pick Sarah Chen (specialist) or Oak Barrel Distilling Co. (applicant). Both appear on the same login page. This is fake auth for the prototype.
 
+![Login page with Sarah Chen and Oak Barrel Distilling Co. demo accounts](images/quickstart-login.png)
+
 ### 2. Configure Settings
 
 Open **Settings**. Use **AI Vision (OpenAI)** unless you need the offline Tesseract fallback.
+
+![Settings page with AI Vision selected and the Tesseract fallback option](images/quickstart-settings.png)
 
 ### 3. Verify a Label (specialist)
 
@@ -57,6 +61,8 @@ Open **Verify Label**.
 3. Fill the **application data** fields so the tool can match form vs label. Skip comparison only if you do not have those values.
 4. Click **Run Verification**.
 
+![Verify Label page in Single mode with the image dropzone](images/quickstart-verify.png)
+
 ### 4. Review Results
 
 - Check the field list. Green is a match; red/amber needs a decision.
@@ -65,6 +71,8 @@ Open **Verify Label**.
 - Press `O` to override the first blocking field, `A` to approve when clear, `R` to reject when blocked.
 - Government warning: wording + ALL CAPS header are checked. Bold/contrast is a visual check.
 
+![Application detail with label image, field checks, overrides, and reject action](images/quickstart-review.png)
+
 ### 5. Batch Processing
 
 1. Toggle **Batch Upload**.
@@ -72,12 +80,24 @@ Open **Verify Label**.
 3. Failed files are listed with the error. Successful rows link to the full application review.
 4. Export CSV includes both successes and failures.
 
+![Verify Label page in Batch Upload mode for up to 300 images](images/quickstart-batch.png)
+
 ### 6. Applicants and queue
 
 - **Applications** is the review queue.
 - **Applicants** lists companies with contact name, phone, email, and pending/approved/rejected counts.
 - Applicant users submit from **Portal**; they confirm what the AI read before filing.
 
+![Applications queue with status, company, and reviewer filters](images/quickstart-applications.png)
+
+![Applicants directory with contacts and pending, approved, and rejected counts](images/quickstart-applicants.png)
+
+![Applicant portal submissions list with status and delete actions](images/quickstart-portal.png)
+
+![Applicant Submit a Label page, step 1 of 2](images/quickstart-submit.png)
+
 ### 7. Guidelines
 
 **TTB Guidelines** is the reference the rules engine uses (spirits, wine, beer). Extra rules such as age statements and type size are documented there, not auto-enforced.
+
+![TTB Guidelines for distilled spirits, including mandatory fields and the health warning](images/quickstart-guidelines.png)
