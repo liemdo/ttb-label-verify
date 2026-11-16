@@ -2,7 +2,7 @@
 
 A proof-of-concept for TTB label review: match a submitted label image to application data, then let a specialist approve or reject with judgment.
 
-Live prototype: [https://ttb-label-verify-git-main-realliemdo.vercel.app/](https://ttb-label-verify-git-main-realliemdo.vercel.app/)
+Live prototype: [https://ttb-label-verify-smoky.vercel.app/](https://ttb-label-verify-smoky.vercel.app/)
 
 ## Key Features
 
